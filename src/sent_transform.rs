@@ -7,9 +7,13 @@ pub fn load_model() -> Result<sbert::SBert<sbert::HFTokenizer>, sbert::Error> {
     return SBertHF::new(MODEL_PATH);
 }
 
-pub fn dot<'a>(a: &Vec<f32>, b: &Vec<f32>) -> Result<f32, &'a str> {
+pub fn dot<'a>(a: &Vec<f32>, b: &Vec<f32>) -> Result<f32, String> {
     if a.len() != b.len() {
-        return Err("Vectors not equal length");
+        return Err(format!(
+            "Vectors not equal length (a={}, b={})",
+            a.len(),
+            b.len()
+        ));
     }
 
     let mut dotp = 0.0;
@@ -31,7 +35,7 @@ mod tests {
         let b: Vec<f32> = vec![1.0];
         let err = dot(&a, &b).unwrap_err();
 
-        assert_eq!(err, "Vectors not equal length");
+        assert_eq!(err, "Vectors not equal length (a=2, b=1)");
     }
 
     #[test]
