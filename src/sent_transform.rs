@@ -16,12 +16,10 @@ pub fn dot<'a>(a: &Vec<f32>, b: &Vec<f32>) -> Result<f32, String> {
         ));
     }
 
-    let mut dotp = 0.0;
-    for (idx, aelem) in a.iter().enumerate() {
-        let belem = b[idx];
-
-        dotp += aelem * belem;
-    }
+    let dotp: f32 = a
+        .iter()
+        .zip(b.iter())
+        .fold(0.0, |sum, (ae, be)| sum + (ae * be));
 
     return Ok(dotp);
 }
