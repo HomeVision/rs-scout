@@ -1,3 +1,5 @@
+use std::{cmp::Reverse, collections::BinaryHeap};
+
 const MODEL_PATH: &str =
     "/home/vincentchu/workspace/rust-sbert/models/distiluse-base-multilingual-cased";
 
@@ -26,17 +28,85 @@ pub fn compute_normalized_embedding(
     compute_normalized_embeddings(model, &[input]).map(|e| e.first().unwrap().clone())
 }
 
-// pub fn search_embeddings(
-//     query: &sbert::Embeddings,
-//     vectors: &Vec<sbert::Embeddings>,
-//     results: usize,
-// ) -> Result<(Vec<usize>, Vec<f32>), String> {
-//     if vectors.len() < results {
-//         // full sort
-//     }
+// type IndexWithScore = (usize, f32);
+// struct IndexWithScore((usize, f32));
 
-//     return Ok((vec![], vec![]));
+// impl Eq for IndexWithScore {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.0 == other.0 && self.1 == other.1
+//     }
 // }
+
+// impl Ord for IndexWithScore {
+//     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+//         let left = self.1;
+//         let right = other.1;
+
+//         left.total_cmp(&right)
+//     }
+// }
+
+#[derive(PartialEq)]
+pub struct IndexWithScore {
+    index: usize,
+    score: f32,
+}
+
+impl Eq for IndexWithScore {}
+
+impl PartialOrd for IndexWithScore {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let left = self.score;
+        let right = other.score;
+
+        left.partial_cmp(&right).map(|o| o.reverse())
+    }
+}
+
+impl Ord for IndexWithScore {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let left = self.score;
+        let right = other.score;
+
+        left.total_cmp(&right).reverse()
+    }
+}
+
+pub fn search_knn(
+    query: &sbert::Embeddings,
+    vectors: &Vec<sbert::Embeddings>,
+    results: usize,
+) -> Result<Vec<IndexWithScore>, String> {
+    let mut heap: BinaryHeap<IndexWithScore> = BinaryHeap::new();
+
+    for idx in 0..vectors.len() {
+        let vector = &vectors[idx];
+        let score = match dot(query, vector) {
+            Ok(s) => s,
+            Err(err) => return Err(err),
+        };
+
+        let new_item = IndexWithScore {
+            index: idx,
+            score: score,
+        };
+
+        match heap.peek() {
+            Some(min_elem) => {
+                if min_elem.score > score {
+                    if heap.len() == results {
+                        heap.pop();
+                    }
+
+                    heap.push(new_item);
+                }
+            }
+            None => heap.push(new_item),
+        }
+    }
+
+    Ok(heap.into_vec())
+}
 
 fn full_ranking_cosine(
     query_vec: &sbert::Embeddings,
@@ -125,5 +195,33 @@ mod tests {
         a = l2_normalize(a);
 
         assert_eq!(l2_norm(&a), 1.0);
+    }
+
+    #[test]
+    fn test_ordering_index_with_score() {
+        let mut items = vec![
+            IndexWithScore {
+                index: 0,
+                score: -1.0,
+            },
+            IndexWithScore {
+                index: 1,
+                score: 0.85,
+            },
+            IndexWithScore {
+                index: 2,
+                score: 1.0,
+            },
+            IndexWithScore {
+                index: 3,
+                score: 0.9,
+            },
+        ];
+
+        items.sort();
+
+        let items: Vec<usize> = items.iter().map(|i| i.index).collect();
+
+        assert_eq!(items, vec![2, 3, 1, 0]);
     }
 }
