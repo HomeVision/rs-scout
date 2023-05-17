@@ -1,10 +1,26 @@
-use sbert::SBertHF;
+use sbert;
 
 const MODEL_PATH: &'static str =
     "/home/vincentchu/workspace/rust-sbert/models/distiluse-base-multilingual-cased";
 
+const BATCH_SIZE: usize = 64;
+
 pub fn load_model() -> Result<sbert::SBert<sbert::HFTokenizer>, sbert::Error> {
-    return SBertHF::new(MODEL_PATH);
+    return sbert::SBertHF::new(MODEL_PATH);
+}
+
+pub fn compute_embeddings(
+    model: &sbert::SBert<sbert::HFTokenizer>,
+    input: &Vec<&str>,
+) -> Result<Vec<sbert::Embeddings>, sbert::Error> {
+    model.encode(input, BATCH_SIZE)
+}
+
+pub fn compute_embedding(
+    model: &sbert::SBert<sbert::HFTokenizer>,
+    input: &str,
+) -> Result<sbert::Embeddings, sbert::Error> {
+    return compute_embeddings(model, &vec![input]).map(|e| e.first().unwrap().clone());
 }
 
 pub fn dot<'a>(a: &Vec<f32>, b: &Vec<f32>) -> Result<f32, String> {

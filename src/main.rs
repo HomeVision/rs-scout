@@ -3,45 +3,39 @@ mod sent_transform;
 fn main() {
     println!("Hello, world!");
 
-    // let mut home: PathBuf = env::current_dir().unwrap();
-    // home.push("/home/vincentchu/workspace/rust-sbert/models/distiluse-base-multilingual-cased");
-
-    // let p = match home.to_str() {
-    //     Some(pth) => pth,
-    //     None => "",
-    // };
-
-    // println!("HOME = {p}");
-
-    // let foo = home.to_str().unwrap();
-
-    // let sbert_model = SBertHF::new(foo).expect("FUUU");
-
-    let sbert_model = sent_transform::load_model().expect("FUUU");
+    let query: &'static str = "rock climbing";
     let texts = [
         "NATO is a mutual defense organization.",
         "The Access fund does rock climbing advocacy.",
     ];
 
-    let batch_size = 64;
-    let q = ["rock climbing"];
-    let qo = match sbert_model.encode(&q.to_vec(), batch_size) {
-        Ok(res) => res,
-        Err(e) => panic!("WTF2 {e}"),
+    let sbert_model = match sent_transform::load_model() {
+        Ok(model) => model,
+        Err(err) => panic!("Failed to load model: {err}"),
     };
 
-    let q = match qo.first() {
-        Some(f) => f,
-        None => panic!("WTF3"),
+    let embeddings = match sent_transform::compute_embeddings(&sbert_model, &texts.to_vec()) {
+        Ok(embeddings) => embeddings,
+        Err(err) => panic!("Failed to compute embeddings: {err}"),
     };
 
-    let output = match sbert_model.encode(&texts.to_vec(), batch_size) {
-        Ok(res) => res,
-        Err(e) => panic!("WTF! {e}"),
+    let query_embedding = match sent_transform::compute_embedding(&sbert_model, query) {
+        Ok(embedding) => embedding,
+        Err(err) => panic!("Failed to compute query embedding: {err}"),
     };
 
-    for (idx, vec) in output.iter().enumerate() {
-        println!("VECTOR {idx} = {}", vec.len());
-        println!("DOT = {}", sent_transform::dot(vec, q).unwrap());
+    for (idx, vec) in embeddings.iter().enumerate() {
+        let dot = match sent_transform::dot(vec, &query_embedding) {
+            Ok(dot) => dot,
+            Err(err) => panic!("IDX {:3}:Error computing dot product: {err}", idx),
+        };
+
+        println!(
+            "Vector {:3}: {:4} len, dot={:6.3} {}",
+            idx,
+            vec.len(),
+            dot,
+            texts[idx]
+        );
     }
 }
