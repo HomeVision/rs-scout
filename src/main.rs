@@ -14,7 +14,7 @@ fn main() {
         Err(err) => panic!("Failed to load model: {err}"),
     };
 
-    let embeddings = match sent_transform::compute_embeddings(&sbert_model, &texts.to_vec()) {
+    let embeddings = match sent_transform::compute_embeddings(&sbert_model, texts.as_ref()) {
         Ok(embeddings) => embeddings,
         Err(err) => panic!("Failed to compute embeddings: {err}"),
     };
@@ -37,5 +37,11 @@ fn main() {
             dot,
             texts[idx]
         );
+    }
+
+    let sorted_indices = sent_transform::search_embeddings(&query_embedding, &embeddings);
+
+    for (position, idx) in sorted_indices.iter().enumerate() {
+        println!("Result{:3}: Index: {:5} {}", position + 1, idx, texts[*idx]);
     }
 }

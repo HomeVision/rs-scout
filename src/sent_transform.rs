@@ -1,17 +1,15 @@
-use sbert;
-
-const MODEL_PATH: &'static str =
+const MODEL_PATH: &str =
     "/home/vincentchu/workspace/rust-sbert/models/distiluse-base-multilingual-cased";
 
 const BATCH_SIZE: usize = 64;
 
 pub fn load_model() -> Result<sbert::SBert<sbert::HFTokenizer>, sbert::Error> {
-    return sbert::SBertHF::new(MODEL_PATH);
+    sbert::SBertHF::new(MODEL_PATH)
 }
 
 pub fn compute_embeddings(
     model: &sbert::SBert<sbert::HFTokenizer>,
-    input: &Vec<&str>,
+    input: &[&str],
 ) -> Result<Vec<sbert::Embeddings>, sbert::Error> {
     model.encode(input, BATCH_SIZE)
 }
@@ -20,10 +18,31 @@ pub fn compute_embedding(
     model: &sbert::SBert<sbert::HFTokenizer>,
     input: &str,
 ) -> Result<sbert::Embeddings, sbert::Error> {
-    return compute_embeddings(model, &vec![input]).map(|e| e.first().unwrap().clone());
+    compute_embeddings(model, &[input]).map(|e| e.first().unwrap().clone())
 }
 
-// pub fn search_embeddings(query_vec: &sbert::Embeddings, search_vecs: &Vec<sbert::Embeddings>)
+pub fn search_embeddings(
+    query_vec: &sbert::Embeddings,
+    search_vecs: &Vec<sbert::Embeddings>,
+) -> Vec<usize> {
+    if search_vecs.is_empty() {
+        return vec![];
+    }
+
+    let mut indices: Vec<usize> = (0..search_vecs.len()).collect();
+
+    indices.sort_by(|i, j| {
+        let vi = &search_vecs[*i];
+        let vj = &search_vecs[*j];
+
+        let di = -dot(query_vec, vi).unwrap();
+        let dj = -dot(query_vec, vj).unwrap();
+
+        di.partial_cmp(&dj).unwrap()
+    });
+
+    indices.clone()
+}
 
 pub fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
     if a.len() != b.len() {
@@ -39,7 +58,7 @@ pub fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> 
         .zip(b.iter())
         .fold(0.0, |sum, (ae, be)| sum + (ae * be));
 
-    return Ok(dotp);
+    Ok(dotp)
 }
 
 #[cfg(test)]
