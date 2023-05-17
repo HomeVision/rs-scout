@@ -23,7 +23,9 @@ pub fn compute_embedding(
     return compute_embeddings(model, &vec![input]).map(|e| e.first().unwrap().clone());
 }
 
-pub fn dot<'a>(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
+// pub fn search_embeddings(query_vec: &sbert::Embeddings, search_vecs: &Vec<sbert::Embeddings>)
+
+pub fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
     if a.len() != b.len() {
         return Err(format!(
             "Vectors not equal length (a={}, b={})",
