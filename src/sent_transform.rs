@@ -73,8 +73,11 @@ fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
     Ok(dotp)
 }
 
-// fn l2_normalize(v: Vec<f32>) -> Vec<f32> {
-// }
+fn l2_normalize(v: Vec<f32>) -> Vec<f32> {
+    let norm = l2_norm(&v);
+
+    v.iter().map(|elem| elem / norm).collect()
+}
 
 fn l2_norm(v: &sbert::Embeddings) -> f32 {
     dot(v, v)
@@ -108,5 +111,13 @@ mod tests {
         let a: sbert::Embeddings = vec![1.0, 1.0];
 
         assert_eq!(l2_norm(&a), 2.0_f32.sqrt());
+    }
+
+    #[test]
+    fn test_l2_normalize() {
+        let mut a: sbert::Embeddings = vec![12.0, -1.0];
+        a = l2_normalize(a);
+
+        assert_eq!(l2_norm(&a), 1.0);
     }
 }
