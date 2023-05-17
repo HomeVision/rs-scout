@@ -23,7 +23,7 @@ pub fn compute_embedding(
     return compute_embeddings(model, &vec![input]).map(|e| e.first().unwrap().clone());
 }
 
-pub fn dot<'a>(a: &Vec<f32>, b: &Vec<f32>) -> Result<f32, String> {
+pub fn dot<'a>(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
     if a.len() != b.len() {
         return Err(format!(
             "Vectors not equal length (a={}, b={})",
@@ -45,8 +45,8 @@ mod tests {
     use super::*;
     #[test]
     fn test_dot_with_unequal_inputs() {
-        let a: Vec<f32> = vec![1.0, 2.0];
-        let b: Vec<f32> = vec![1.0];
+        let a: sbert::Embeddings = vec![1.0, 2.0];
+        let b: sbert::Embeddings = vec![1.0];
         let err = dot(&a, &b).unwrap_err();
 
         assert_eq!(err, "Vectors not equal length (a=2, b=1)");
@@ -54,8 +54,8 @@ mod tests {
 
     #[test]
     fn test_dot_with_appropriate_input() {
-        let a: Vec<f32> = vec![1.0, 0.0];
-        let b: Vec<f32> = vec![-1.0, 0.0];
+        let a: sbert::Embeddings = vec![1.0, 0.0];
+        let b: sbert::Embeddings = vec![-1.0, 0.0];
         let dotp = dot(&a, &b).unwrap();
 
         assert_eq!(dotp, -1.0);
