@@ -24,24 +24,24 @@ fn main() {
         Err(err) => panic!("Failed to compute query embedding: {err}"),
     };
 
-    for (idx, vec) in embeddings.iter().enumerate() {
-        let dot = match sent_transform::dot(vec, &query_embedding) {
-            Ok(dot) => dot,
-            Err(err) => panic!("IDX {:3}:Error computing dot product: {err}", idx),
-        };
+    // for (idx, vec) in embeddings.iter().enumerate() {
+    //     let dot = match sent_transform::dot(vec, &query_embedding) {
+    //         Ok(dot) => dot,
+    //         Err(err) => panic!("IDX {:3}:Error computing dot product: {err}", idx),
+    //     };
 
-        println!(
-            "Vector {:3}: {:4} len, dot={:6.3} {}",
-            idx,
-            vec.len(),
-            dot,
-            texts[idx]
-        );
-    }
+    //     println!(
+    //         "Vector {:3}: {:4} len, dot={:6.3} {}",
+    //         idx,
+    //         vec.len(),
+    //         dot,
+    //         texts[idx]
+    //     );
+    // }
 
-    let sorted_indices = sent_transform::search_embeddings(&query_embedding, &embeddings);
+    // let sorted_indices = sent_transform::search_embeddings_old(&query_embedding, &embeddings);
 
-    for (position, idx) in sorted_indices.iter().enumerate() {
-        println!("Result{:3}: Index: {:5} {}", position + 1, idx, texts[*idx]);
-    }
+    // for (position, idx) in sorted_indices.iter().enumerate() {
+    //     println!("Result{:3}: Index: {:5} {}", position + 1, idx, texts[*idx]);
+    // }
 }

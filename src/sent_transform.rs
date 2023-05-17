@@ -21,7 +21,19 @@ pub fn compute_embedding(
     compute_embeddings(model, &[input]).map(|e| e.first().unwrap().clone())
 }
 
-pub fn search_embeddings(
+// pub fn search_embeddings(
+//     query: &sbert::Embeddings,
+//     vectors: &Vec<sbert::Embeddings>,
+//     results: usize,
+// ) -> Result<(Vec<usize>, Vec<f32>), String> {
+//     if vectors.len() < results {
+//         // full sort
+//     }
+
+//     return Ok((vec![], vec![]));
+// }
+
+fn full_ranking_cosine(
     query_vec: &sbert::Embeddings,
     search_vecs: &Vec<sbert::Embeddings>,
 ) -> Vec<usize> {
@@ -41,10 +53,10 @@ pub fn search_embeddings(
         di.partial_cmp(&dj).unwrap()
     });
 
-    indices.clone()
+    indices
 }
 
-pub fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
+fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
     if a.len() != b.len() {
         return Err(format!(
             "Vectors not equal length (a={}, b={})",
@@ -59,6 +71,15 @@ pub fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> 
         .fold(0.0, |sum, (ae, be)| sum + (ae * be));
 
     Ok(dotp)
+}
+
+// fn l2_normalize(v: Vec<f32>) -> Vec<f32> {
+// }
+
+fn l2_norm(v: &sbert::Embeddings) -> f32 {
+    dot(v, v)
+        .expect("l2_norm: Encountered unexpected panic")
+        .sqrt()
 }
 
 #[cfg(test)]
@@ -80,5 +101,12 @@ mod tests {
         let dotp = dot(&a, &b).unwrap();
 
         assert_eq!(dotp, -1.0);
+    }
+
+    #[test]
+    fn test_l2_norm() {
+        let a: sbert::Embeddings = vec![1.0, 1.0];
+
+        assert_eq!(l2_norm(&a), 2.0_f32.sqrt());
     }
 }
