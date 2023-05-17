@@ -7,18 +7,23 @@ pub fn load_model() -> Result<sbert::SBert<sbert::HFTokenizer>, sbert::Error> {
     sbert::SBertHF::new(MODEL_PATH)
 }
 
-pub fn compute_embeddings(
+pub fn compute_normalized_embeddings(
     model: &sbert::SBert<sbert::HFTokenizer>,
     input: &[&str],
 ) -> Result<Vec<sbert::Embeddings>, sbert::Error> {
-    model.encode(input, BATCH_SIZE)
+    model.encode(input, BATCH_SIZE).map(|raw_embeddings| {
+        raw_embeddings
+            .iter()
+            .map(|raw_embedding| l2_normalize(raw_embedding.to_vec()))
+            .collect()
+    })
 }
 
-pub fn compute_embedding(
+pub fn compute_normalized_embedding(
     model: &sbert::SBert<sbert::HFTokenizer>,
     input: &str,
 ) -> Result<sbert::Embeddings, sbert::Error> {
-    compute_embeddings(model, &[input]).map(|e| e.first().unwrap().clone())
+    compute_normalized_embeddings(model, &[input]).map(|e| e.first().unwrap().clone())
 }
 
 // pub fn search_embeddings(
@@ -88,6 +93,7 @@ fn l2_norm(v: &sbert::Embeddings) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_dot_with_unequal_inputs() {
         let a: sbert::Embeddings = vec![1.0, 2.0];

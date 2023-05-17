@@ -14,12 +14,13 @@ fn main() {
         Err(err) => panic!("Failed to load model: {err}"),
     };
 
-    let embeddings = match sent_transform::compute_embeddings(&sbert_model, texts.as_ref()) {
-        Ok(embeddings) => embeddings,
-        Err(err) => panic!("Failed to compute embeddings: {err}"),
-    };
+    let embeddings =
+        match sent_transform::compute_normalized_embeddings(&sbert_model, texts.as_ref()) {
+            Ok(embeddings) => embeddings,
+            Err(err) => panic!("Failed to compute embeddings: {err}"),
+        };
 
-    let query_embedding = match sent_transform::compute_embedding(&sbert_model, query) {
+    let query_embedding = match sent_transform::compute_normalized_embedding(&sbert_model, query) {
         Ok(embedding) => embedding,
         Err(err) => panic!("Failed to compute query embedding: {err}"),
     };
