@@ -19,20 +19,29 @@ fn main() {
 
     let sbert_model = sent_transform::load_model().expect("FUUU");
     let texts = [
-        "You can encode",
-        "As many sentences",
-        "As you want",
-        "Enjoy ;)",
+        "NATO is a mutual defense organization.",
+        "The Access fund does rock climbing advocacy.",
     ];
 
     let batch_size = 64;
+    let q = ["rock climbing"];
+    let qo = match sbert_model.encode(&q.to_vec(), batch_size) {
+        Ok(res) => res,
+        Err(e) => panic!("WTF2 {e}"),
+    };
+
+    let q = match qo.first() {
+        Some(f) => f,
+        None => panic!("WTF3"),
+    };
 
     let output = match sbert_model.encode(&texts.to_vec(), batch_size) {
         Ok(res) => res,
-        Err(e) => panic!("WTF!"),
+        Err(e) => panic!("WTF! {e}"),
     };
 
-    for vec in output {
-        println!("{:?}", vec);
+    for (idx, vec) in output.iter().enumerate() {
+        println!("VECTOR {idx} = {}", vec.len());
+        println!("DOT = {}", sent_transform::dot(vec, q).unwrap());
     }
 }
