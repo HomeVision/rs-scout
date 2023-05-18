@@ -85,6 +85,7 @@ pub fn search_knn(
             Ok(s) => s,
             Err(err) => return Err(err),
         };
+        println!("IDX={idx} SCORE = {score}");
 
         let new_item = IndexWithScore {
             index: idx,
@@ -93,7 +94,13 @@ pub fn search_knn(
 
         match heap.peek() {
             Some(min_elem) => {
-                if min_elem.score > score {
+                println!(
+                    "min_elem={}, {} score={score} len={}",
+                    min_elem.index,
+                    min_elem.score,
+                    heap.len()
+                );
+                if min_elem.score < score {
                     if heap.len() == results {
                         heap.pop();
                     }
@@ -101,34 +108,19 @@ pub fn search_knn(
                     heap.push(new_item);
                 }
             }
-            None => heap.push(new_item),
+            None => {
+                println!("HEAP EMPTY, pushing!");
+                heap.push(new_item);
+            }
         }
     }
 
-    Ok(heap.into_vec())
-}
+    println!("HHERE {} - {}", heap.len(), heap.peek().unwrap().index);
 
-fn full_ranking_cosine(
-    query_vec: &sbert::Embeddings,
-    search_vecs: &Vec<sbert::Embeddings>,
-) -> Vec<usize> {
-    if search_vecs.is_empty() {
-        return vec![];
-    }
+    let mut items = heap.into_vec();
+    items.reverse();
 
-    let mut indices: Vec<usize> = (0..search_vecs.len()).collect();
-
-    indices.sort_by(|i, j| {
-        let vi = &search_vecs[*i];
-        let vj = &search_vecs[*j];
-
-        let di = -dot(query_vec, vi).unwrap();
-        let dj = -dot(query_vec, vj).unwrap();
-
-        di.partial_cmp(&dj).unwrap()
-    });
-
-    indices
+    Ok(items)
 }
 
 fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
@@ -223,5 +215,23 @@ mod tests {
         let items: Vec<usize> = items.iter().map(|i| i.index).collect();
 
         assert_eq!(items, vec![2, 3, 1, 0]);
+    }
+
+    #[test]
+    fn test_search_knn() {
+        let q = l2_normalize(vec![1.0, 0.0]);
+        let vectors = vec![
+            vec![-1.0, 0.0],
+            vec![1.0, 0.0],
+            l2_normalize(vec![0.5, 0.5]),
+        ];
+
+        let result_indices: Vec<usize> = search_knn(&q, &vectors, 2)
+            .expect("search_knn: Unexpected failure")
+            .iter()
+            .map(|i| i.index)
+            .collect();
+
+        assert_eq!(result_indices, vec![1, 2]);
     }
 }
