@@ -1,7 +1,8 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::State;
+use rocket::{http::RawStr, State};
+use std::sync;
 
 mod sent_transform;
 mod vector_index;
@@ -48,13 +49,32 @@ fn main_old() {
     }
 }
 
+#[get("/index/<name>")]
+fn index_get(name: String) -> String {
+    format!("Hello, {}", name)
+}
+
 #[get("/")]
-fn index(state: &State<i32>) -> String {
-    format!("Hello, world! {}", state)
+fn root() -> String {
+    format!("Scout, at your service.")
+}
+
+struct ServerState {
+    model: sync::Mutex<sent_transform::SentenceTransformer>,
 }
 
 #[launch]
 fn rocket() -> _ {
-    let mut count = 10;
-    rocket::build().mount("/", routes![index]).manage(count)
+    let model = match sent_transform::load_model() {
+        Ok(m) => m,
+        Err(e) => panic!("Failed to load sentence_transformer: {e}"),
+    };
+
+    let state = ServerState {
+        model: sync::Mutex::new(model),
+    };
+
+    rocket::build()
+        .mount("/", routes![root, index_get])
+        .manage(state)
 }
