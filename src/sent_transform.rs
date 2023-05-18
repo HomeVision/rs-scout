@@ -56,22 +56,18 @@ impl Ord for IndexWithScore {
 
 pub fn search_knn(
     query: &sbert::Embeddings,
-    vectors: &Vec<sbert::Embeddings>,
+    vectors: &[sbert::Embeddings],
     results: usize,
 ) -> Result<Vec<IndexWithScore>, String> {
     let mut heap: BinaryHeap<IndexWithScore> = BinaryHeap::new();
 
-    for idx in 0..vectors.len() {
-        let vector = &vectors[idx];
+    for (index, vector) in vectors.iter().enumerate() {
         let score = match dot(query, vector) {
             Ok(s) => s,
             Err(err) => return Err(err),
         };
 
-        let new_item = IndexWithScore {
-            index: idx,
-            score: score,
-        };
+        let new_item = IndexWithScore { index, score };
 
         match heap.peek() {
             Some(min_elem) => {

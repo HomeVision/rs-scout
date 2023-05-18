@@ -30,6 +30,7 @@ fn main() {
         Err(err) => panic!("Failed to search_knn: {err}"),
     };
 
+    println!("Query: {query}");
     for (idx, result) in results.iter().enumerate() {
         println!(
             "Result {:2}: Index={:4}, Score={:6.3} {}",
