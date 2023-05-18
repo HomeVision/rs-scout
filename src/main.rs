@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate rocket;
 
+use rocket::State;
+
 mod sent_transform;
+mod vector_index;
 
 fn main_old() {
     println!("Hello, world!");
@@ -46,11 +49,12 @@ fn main_old() {
 }
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn index(state: &State<i32>) -> String {
+    format!("Hello, world! {}", state)
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+    let mut count = 10;
+    rocket::build().mount("/", routes![index]).manage(count)
 }

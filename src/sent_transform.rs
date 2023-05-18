@@ -1,16 +1,18 @@
 use std::collections::BinaryHeap;
 
+pub type SentenceTransformer = sbert::SBert<sbert::HFTokenizer>;
+
 const MODEL_PATH: &str =
     "/home/vincentchu/workspace/rust-sbert/models/distiluse-base-multilingual-cased";
 
 const BATCH_SIZE: usize = 64;
 
-pub fn load_model() -> Result<sbert::SBert<sbert::HFTokenizer>, sbert::Error> {
+pub fn load_model() -> Result<SentenceTransformer, sbert::Error> {
     sbert::SBertHF::new(MODEL_PATH)
 }
 
 pub fn compute_normalized_embeddings(
-    model: &sbert::SBert<sbert::HFTokenizer>,
+    model: &SentenceTransformer,
     input: &[&str],
 ) -> Result<Vec<sbert::Embeddings>, sbert::Error> {
     model.encode(input, BATCH_SIZE).map(|raw_embeddings| {
@@ -22,7 +24,7 @@ pub fn compute_normalized_embeddings(
 }
 
 pub fn compute_normalized_embedding(
-    model: &sbert::SBert<sbert::HFTokenizer>,
+    model: &SentenceTransformer,
     input: &str,
 ) -> Result<sbert::Embeddings, sbert::Error> {
     compute_normalized_embeddings(model, &[input]).map(|e| e.first().unwrap().clone())
