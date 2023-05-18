@@ -1,5 +1,4 @@
 use crate::sent_transform;
-use rocket::http::ext::IntoCollection;
 use sbert::{self, Embeddings};
 use std::sync;
 
@@ -7,6 +6,12 @@ use std::sync;
 pub struct TextBody {
     pub id: String,
     pub text: String,
+}
+
+pub struct SearchResult {
+    pub id: String,
+    pub text: String,
+    pub score: f32,
 }
 
 struct Index {
@@ -78,11 +83,26 @@ impl GuardedIndex {
         &self,
         query: &sbert::Embeddings,
         results: usize,
-    ) -> Result<Vec<sent_transform::IndexWithScore>, String> {
+    ) -> Result<Vec<SearchResult>, String> {
         self.index
             .read()
-            .map_err(|_| String::from(""))
-            .and_then(|idx| sent_transform::search_knn(query, &idx.embeddings, results))
+            .map_err(|_| String::from("search_knn: Failed to acquire lock"))
+            .and_then(|idx| {
+                sent_transform::search_knn(query, &idx.embeddings, results).map(|raw_results| {
+                    raw_results
+                        .iter()
+                        .map(|raw_result| {
+                            let text_body = &idx.texts[raw_result.index];
+
+                            SearchResult {
+                                id: String::from(&text_body.id),
+                                text: String::from(&text_body.text),
+                                score: raw_result.score,
+                            }
+                        })
+                        .collect()
+                })
+            })
     }
 }
 
