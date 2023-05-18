@@ -1,6 +1,9 @@
+#[macro_use]
+extern crate rocket;
+
 mod sent_transform;
 
-fn main() {
+fn main_old() {
     println!("Hello, world!");
 
     let query: &'static str = "military";
@@ -40,4 +43,14 @@ fn main() {
             texts[result.index]
         );
     }
+}
+
+#[get("/")]
+fn index() -> &'static str {
+    "Hello, world!"
+}
+
+#[launch]
+fn rocket() -> _ {
+    rocket::build().mount("/", routes![index])
 }
