@@ -75,8 +75,9 @@ pub fn search_knn(
 
         match heap.peek() {
             Some(min_elem) => {
-                if min_elem.score < score {
-                    if heap.len() == results {
+                let curr_len = heap.len();
+                if min_elem.score < score || curr_len < results {
+                    if curr_len == results {
                         heap.pop();
                     }
 
@@ -203,5 +204,14 @@ mod tests {
             .collect();
 
         assert_eq!(result_indices, vec![1, 2]);
+
+        let q = vec![-1.0, 0.0];
+        let result_indices: Vec<usize> = search_knn(&q, &vectors, 2)
+            .expect("search_knn: Unexpected failure")
+            .iter()
+            .map(|i| i.index)
+            .collect();
+
+        assert_eq!(result_indices, vec![0, 2]);
     }
 }
