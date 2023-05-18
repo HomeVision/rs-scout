@@ -3,7 +3,7 @@ mod sent_transform;
 fn main() {
     println!("Hello, world!");
 
-    let query: &'static str = "rock climbing";
+    let query: &'static str = "military";
     let texts = [
         "NATO is a mutual defense organization.",
         "The Access fund does rock climbing advocacy.",
@@ -25,24 +25,18 @@ fn main() {
         Err(err) => panic!("Failed to compute query embedding: {err}"),
     };
 
-    // for (idx, vec) in embeddings.iter().enumerate() {
-    //     let dot = match sent_transform::dot(vec, &query_embedding) {
-    //         Ok(dot) => dot,
-    //         Err(err) => panic!("IDX {:3}:Error computing dot product: {err}", idx),
-    //     };
+    let results = match sent_transform::search_knn(&query_embedding, &embeddings, 3) {
+        Ok(res) => res,
+        Err(err) => panic!("Failed to search_knn: {err}"),
+    };
 
-    //     println!(
-    //         "Vector {:3}: {:4} len, dot={:6.3} {}",
-    //         idx,
-    //         vec.len(),
-    //         dot,
-    //         texts[idx]
-    //     );
-    // }
-
-    // let sorted_indices = sent_transform::search_embeddings_old(&query_embedding, &embeddings);
-
-    // for (position, idx) in sorted_indices.iter().enumerate() {
-    //     println!("Result{:3}: Index: {:5} {}", position + 1, idx, texts[*idx]);
-    // }
+    for (idx, result) in results.iter().enumerate() {
+        println!(
+            "Result {:2}: Index={:4}, Score={:6.3} {}",
+            idx + 1,
+            result.index,
+            result.score,
+            texts[result.index]
+        );
+    }
 }

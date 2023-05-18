@@ -1,4 +1,4 @@
-use std::{cmp::Reverse, collections::BinaryHeap};
+use std::collections::BinaryHeap;
 
 const MODEL_PATH: &str =
     "/home/vincentchu/workspace/rust-sbert/models/distiluse-base-multilingual-cased";
@@ -28,28 +28,10 @@ pub fn compute_normalized_embedding(
     compute_normalized_embeddings(model, &[input]).map(|e| e.first().unwrap().clone())
 }
 
-// type IndexWithScore = (usize, f32);
-// struct IndexWithScore((usize, f32));
-
-// impl Eq for IndexWithScore {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.0 == other.0 && self.1 == other.1
-//     }
-// }
-
-// impl Ord for IndexWithScore {
-//     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-//         let left = self.1;
-//         let right = other.1;
-
-//         left.total_cmp(&right)
-//     }
-// }
-
 #[derive(PartialEq)]
 pub struct IndexWithScore {
-    index: usize,
-    score: f32,
+    pub index: usize,
+    pub score: f32,
 }
 
 impl Eq for IndexWithScore {}
@@ -85,7 +67,6 @@ pub fn search_knn(
             Ok(s) => s,
             Err(err) => return Err(err),
         };
-        println!("IDX={idx} SCORE = {score}");
 
         let new_item = IndexWithScore {
             index: idx,
@@ -94,12 +75,6 @@ pub fn search_knn(
 
         match heap.peek() {
             Some(min_elem) => {
-                println!(
-                    "min_elem={}, {} score={score} len={}",
-                    min_elem.index,
-                    min_elem.score,
-                    heap.len()
-                );
                 if min_elem.score < score {
                     if heap.len() == results {
                         heap.pop();
@@ -108,14 +83,9 @@ pub fn search_knn(
                     heap.push(new_item);
                 }
             }
-            None => {
-                println!("HEAP EMPTY, pushing!");
-                heap.push(new_item);
-            }
+            None => heap.push(new_item),
         }
     }
-
-    println!("HHERE {} - {}", heap.len(), heap.peek().unwrap().index);
 
     let mut items = heap.into_vec();
     items.reverse();
