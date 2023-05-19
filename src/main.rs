@@ -5,10 +5,12 @@ use rocket::serde::json::Json;
 use rocket::serde::Serialize;
 use rocket::State;
 
-use sent_transform::{compute_normalized_embeddings, load_model, SentenceTransformer};
+use sent_transform::{
+    compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
+};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
-use vector_index::{GuardedIndex, TextBody};
+use vector_index::{GuardedIndex, SearchResult, TextBody};
 
 mod sent_transform;
 mod vector_index;
@@ -52,6 +54,27 @@ fn main_old() {
             result.score,
             texts[result.index]
         );
+    }
+}
+
+#[get("/index/<index_name>/query?<q>")]
+fn query_index(
+    index_name: String,
+    q: String,
+    state: &State<ServerState>,
+) -> Result<Json<Vec<SearchResult>>, String> {
+    let cache = state.cache.read().unwrap();
+    let model = state.model.lock().unwrap();
+
+    match cache.get(&index_name) {
+        Some(index) => compute_normalized_embedding(&model, &q)
+            .map_err(|err| format!("Error computing embedding: {err}"))
+            .and_then(|query_embedding| {
+                index
+                    .search_knn(&query_embedding, 3)
+                    .map(|results| Json(results))
+            }),
+        None => Err(format!("Index {index_name} not found")),
     }
 }
 
@@ -120,8 +143,8 @@ fn index_update(
     state: &State<ServerState>,
 ) -> Result<Json<RespIndexGet>, String> {
     Ok(Json(RespIndexGet {
-        index: String::from("foo"),
-        size: 1,
+        index: index_name,
+        size: 0,
     }))
 }
 
@@ -166,7 +189,14 @@ fn rocket() -> _ {
     rocket::build()
         .mount(
             "/",
-            routes![root, index_create, index_read, index_update, index_delete],
+            routes![
+                root,
+                index_create,
+                index_read,
+                index_update,
+                index_delete,
+                query_index
+            ],
         )
         .manage(state)
 }
