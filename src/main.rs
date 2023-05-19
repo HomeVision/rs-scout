@@ -62,30 +62,28 @@ fn index_create(
     index_name: String,
     maybe_text_bodies: Option<Json<Vec<TextBody>>>,
     state: &State<ServerState>,
-) -> Result<Json<RespIndex>, String> {
+) -> Result<Json<RespIndex>, JsonRespError> {
     let mut cache = state.cache.write().unwrap();
     match maybe_text_bodies {
         Some(Json(text_bodies)) => {
             let model = state.model.lock().unwrap();
-
             let text_strs: Vec<String> = text_bodies.iter().map(|tb| tb.text.clone()).collect();
             let text_strs: Vec<&str> = text_strs.iter().map(|s| s.as_str()).collect();
 
             compute_normalized_embeddings(&model, &text_strs)
-                .map_err(|e| format!("Error computing embeddings: {e}"))
-                .and_then(|embeddings| {
-                    GuardedIndex::new(text_bodies, embeddings).and_then(|index| {
-                        let n = index.len();
-                        cache.insert(index_name.clone(), index);
+                .map_err(|err| format!("Error computing embeddings: {err}"))
+                .and_then(|embeddings| GuardedIndex::new(text_bodies, embeddings))
+                .map_err(|err| Custom(Status::InternalServerError, Json(RespError { error: err })))
+                .and_then(|index| {
+                    let n = index.len();
+                    cache.insert(index_name.clone(), index);
 
-                        json_ok_resp_index(index_name, n)
-                    })
+                    json_ok_resp_index(index_name, n)
                 })
         }
         None => {
             cache.insert(index_name.clone(), GuardedIndex::empty());
-
-            json_ok_resp_index(index_name, 0)
+            json_ok_resp_index(index_name, 1)
         }
     }
 }
