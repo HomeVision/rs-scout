@@ -79,6 +79,10 @@ impl GuardedIndex {
             .collect()
     }
 
+    pub fn len(&self) -> usize {
+        self.index.read().unwrap().texts.len()
+    }
+
     pub fn search_knn(
         &self,
         query: &sbert::Embeddings,

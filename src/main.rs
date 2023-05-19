@@ -56,11 +56,22 @@ fn main_old() {
 #[derive(Serialize)]
 struct RespIndexGet {
     index: String,
+    size: usize,
 }
 
-#[get("/index/<index>")]
-fn index_get(index: String, state: &State<ServerState>) -> Result<Json<RespIndexGet>, String> {
-    Ok(Json(RespIndexGet { index }))
+#[get("/index/<index_name>")]
+fn index_get(index_name: String, state: &State<ServerState>) -> Result<Json<RespIndexGet>, String> {
+    state
+        .cache
+        .read()
+        .map_err(|_| String::from("Could not get cache lock"))
+        .and_then(|cache| match cache.get(&index_name) {
+            Some(index) => Ok(Json(RespIndexGet {
+                index: index_name,
+                size: index.len(),
+            })),
+            None => Err(String::from("Not found")),
+        })
 }
 
 #[get("/")]
