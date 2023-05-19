@@ -80,17 +80,13 @@ fn index_read(
     index_name: String,
     state: &State<ServerState>,
 ) -> Result<Json<RespIndexGet>, String> {
-    state
-        .cache
-        .read()
-        .map_err(|_| String::from("Could not get cache lock"))
-        .and_then(|cache| match cache.get(&index_name) {
-            Some(index) => Ok(Json(RespIndexGet {
-                index: index_name,
-                size: index.len(),
-            })),
-            None => Err(String::from("Not found")),
-        })
+    match state.cache.read().unwrap().get(&index_name) {
+        Some(index) => Ok(Json(RespIndexGet {
+            index: index_name,
+            size: index.len(),
+        })),
+        None => Err(String::from("Not found")),
+    }
 }
 
 #[delete("/index/<index_name>")]
