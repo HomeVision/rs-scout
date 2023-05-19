@@ -5,7 +5,7 @@ use rocket::serde::json::Json;
 use rocket::serde::Serialize;
 use rocket::State;
 
-use sent_transform::{load_model, SentenceTransformer};
+use sent_transform::{compute_normalized_embeddings, load_model, SentenceTransformer};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 use vector_index::{GuardedIndex, TextBody};
@@ -61,21 +61,43 @@ struct RespIndexGet {
     size: usize,
 }
 
-#[post("/index/<index_name>", data = "<text_bodies>")]
+#[post("/index/<index_name>", data = "<maybe_text_bodies>")]
 fn index_create(
     index_name: String,
-    text_bodies: Option<Json<Vec<TextBody>>>,
+    maybe_text_bodies: Option<Json<Vec<TextBody>>>,
     state: &State<ServerState>,
 ) -> Result<Json<RespIndexGet>, String> {
-    println!("{:?}", text_bodies);
-
     let mut cache = state.cache.write().unwrap();
-    cache.insert(index_name, GuardedIndex::empty());
+    match maybe_text_bodies {
+        Some(Json(text_bodies)) => {
+            let model = state.model.lock().unwrap();
 
-    return Ok(Json(RespIndexGet {
-        index: String::from("foo"),
-        size: 0,
-    }));
+            let text_strs: Vec<String> = text_bodies.iter().map(|tb| tb.text.clone()).collect();
+            let text_strs: Vec<&str> = text_strs.iter().map(|s| s.as_str()).collect();
+
+            compute_normalized_embeddings(&model, &text_strs)
+                .map_err(|e| format!("Error computing embeddings: {e}"))
+                .and_then(|embeddings| {
+                    GuardedIndex::new(text_bodies, embeddings).map(|index| {
+                        let n = index.len();
+                        cache.insert(index_name.clone(), index);
+
+                        Json(RespIndexGet {
+                            index: index_name,
+                            size: n,
+                        })
+                    })
+                })
+        }
+        None => {
+            cache.insert(index_name.clone(), GuardedIndex::empty());
+
+            Ok(Json(RespIndexGet {
+                index: index_name,
+                size: 0,
+            }))
+        }
+    }
 }
 
 #[get("/index/<index_name>")]
