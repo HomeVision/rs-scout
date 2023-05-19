@@ -45,6 +45,7 @@ struct RespIndex {
 
 #[derive(Serialize)]
 struct RespError {
+    ok: bool,
     error: String,
 }
 
@@ -55,7 +56,34 @@ fn json_ok_resp_index<E>(index: String, size: usize) -> Result<Json<RespIndex>, 
 }
 
 fn json_error<T>(status: Status, error: String) -> Result<T, Custom<Json<RespError>>> {
-    Err(Custom(status, Json(RespError { error })))
+    Err(resp_error_with_status(status, error))
+}
+
+fn resp_error_with_status(status: Status, error: String) -> Custom<Json<RespError>> {
+    Custom(status, Json(RespError { ok: false, error }))
+}
+
+fn compute_text_bodies_embeddings(
+    model: &SentenceTransformer,
+    text_bodies: &Vec<TextBody>,
+) -> Result<Vec<Vec<f32>>, Custom<Json<RespError>>> {
+    let text_strs: Vec<String> = text_bodies.iter().map(|tb| tb.text.clone()).collect();
+    let text_strs: Vec<&str> = text_strs.iter().map(|s| s.as_str()).collect();
+
+    compute_normalized_embeddings(model, &text_strs).map_err(|err_code| {
+        resp_error_with_status(
+            Status::InternalServerError,
+            format!("Error computing embeddings: {err_code}"),
+        )
+    })
+}
+
+fn create_guarded_index(
+    text_bodies: Vec<TextBody>,
+    embeddings: Vec<Vec<f32>>,
+) -> Result<GuardedIndex, Custom<Json<RespError>>> {
+    GuardedIndex::new(text_bodies, embeddings)
+        .map_err(|err| resp_error_with_status(Status::InternalServerError, err))
 }
 
 #[post("/index/<index_name>", data = "<maybe_text_bodies>")]
@@ -72,13 +100,9 @@ fn index_create(
     match maybe_text_bodies {
         Some(Json(text_bodies)) => {
             let model = state.model.lock().unwrap();
-            let text_strs: Vec<String> = text_bodies.iter().map(|tb| tb.text.clone()).collect();
-            let text_strs: Vec<&str> = text_strs.iter().map(|s| s.as_str()).collect();
 
-            compute_normalized_embeddings(&model, &text_strs)
-                .map_err(|err| format!("Error computing embeddings: {err}"))
-                .and_then(|embeddings| GuardedIndex::new(text_bodies, embeddings))
-                .map_err(|err| Custom(Status::InternalServerError, Json(RespError { error: err })))
+            compute_text_bodies_embeddings(&model, &text_bodies)
+                .and_then(|embeddings| create_guarded_index(text_bodies, embeddings))
                 .and_then(|index| {
                     let n = index.len();
                     cache.insert(index_name.clone(), index);
@@ -104,8 +128,14 @@ fn index_read(
     }
 }
 
-#[put("/index/<index_name>")]
-fn index_update(index_name: String) -> Result<Json<RespIndex>, String> {
+#[put("/index/<index_name>", data = "<text_bodies>")]
+fn index_update(
+    index_name: String,
+    text_bodies: Json<Vec<TextBody>>,
+    state: &State<ServerState>,
+) -> Result<Json<RespIndex>, String> {
+    let text_bodies = text_bodies.to_vec();
+
     json_ok_resp_index(index_name, 999)
 }
 
