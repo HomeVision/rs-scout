@@ -89,6 +89,17 @@ fn index_read(
     }
 }
 
+#[put("/index/<index_name>")]
+fn index_update(
+    index_name: String,
+    state: &State<ServerState>,
+) -> Result<Json<RespIndexGet>, String> {
+    Ok(Json(RespIndexGet {
+        index: String::from("foo"),
+        size: 1,
+    }))
+}
+
 #[delete("/index/<index_name>")]
 fn index_delete(
     index_name: String,
@@ -128,6 +139,9 @@ fn rocket() -> _ {
     };
 
     rocket::build()
-        .mount("/", routes![root, index_create, index_read, index_delete])
+        .mount(
+            "/",
+            routes![root, index_create, index_read, index_update, index_delete],
+        )
         .manage(state)
 }
