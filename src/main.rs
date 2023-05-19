@@ -7,6 +7,7 @@ use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::serde::Serialize;
 use rocket::State;
+use std::env;
 use std::time::SystemTime;
 
 use sent_transform::{
@@ -139,9 +140,12 @@ struct ServerState {
     cache: Arc<RwLock<HashMap<String, GuardedIndex>>>,
 }
 
+const DEFAULT_MODEL_PATH: &str = "models/distiluse-base-multilingual-cased-converted";
+
 #[launch]
 fn rocket() -> _ {
-    let model = match load_model() {
+    let model_path = env::var("MODEL_PATH").unwrap_or(String::from(DEFAULT_MODEL_PATH));
+    let model = match load_model(&model_path) {
         Ok(m) => m,
         Err(e) => panic!("Failed to load sentence_transformer: {e}"),
     };

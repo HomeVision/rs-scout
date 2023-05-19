@@ -2,13 +2,11 @@ use std::collections::BinaryHeap;
 
 pub type SentenceTransformer = sbert::SBert<sbert::HFTokenizer>;
 
-const MODEL_PATH: &str =
-    "/home/vincentchu/workspace/rust-sbert/models/distiluse-base-multilingual-cased";
-
 const BATCH_SIZE: usize = 64;
 
-pub fn load_model() -> Result<SentenceTransformer, sbert::Error> {
-    sbert::SBertHF::new(MODEL_PATH)
+pub fn load_model(path: &str) -> Result<SentenceTransformer, sbert::Error> {
+    println!("Laoding SBERT from: {path}");
+    sbert::SBertHF::new(path)
 }
 
 pub fn compute_normalized_embeddings(
