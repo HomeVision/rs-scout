@@ -1,8 +1,9 @@
 #[macro_use]
 extern crate rocket;
 
+use rocket::http::Status;
 use rocket::response::content;
-use rocket::response::status;
+use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::serde::Serialize;
 use rocket::State;
@@ -39,6 +40,11 @@ fn query_index(
 struct RespIndex {
     index: String,
     size: usize,
+}
+
+#[derive(Serialize)]
+struct RespError {
+    error: String,
 }
 
 #[post("/index/<index_name>", data = "<maybe_text_bodies>")]
@@ -81,13 +87,21 @@ fn index_create(
 }
 
 #[get("/index/<index_name>")]
-fn index_read(index_name: String, state: &State<ServerState>) -> Result<Json<RespIndex>, String> {
+fn index_read(
+    index_name: String,
+    state: &State<ServerState>,
+) -> Result<Json<RespIndex>, Custom<Json<RespError>>> {
     match state.cache.read().unwrap().get(&index_name) {
         Some(index) => Ok(Json(RespIndex {
             index: index_name,
             size: index.len(),
         })),
-        None => Err(String::from("Not found")),
+        None => Err(Custom(
+            Status::NotFound,
+            Json(RespError {
+                error: format!("{index_name} not found"),
+            }),
+        )),
     }
 }
 
