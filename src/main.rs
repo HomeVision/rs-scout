@@ -1,9 +1,12 @@
 #[macro_use]
 extern crate rocket;
 
+use rocket::response::content;
+use rocket::response::status;
 use rocket::serde::json::Json;
 use rocket::serde::Serialize;
 use rocket::State;
+use std::time::SystemTime;
 
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
@@ -33,7 +36,7 @@ fn query_index(
 }
 
 #[derive(Serialize)]
-struct RespIndexGet {
+struct RespIndex {
     index: String,
     size: usize,
 }
@@ -43,7 +46,7 @@ fn index_create(
     index_name: String,
     maybe_text_bodies: Option<Json<Vec<TextBody>>>,
     state: &State<ServerState>,
-) -> Result<Json<RespIndexGet>, String> {
+) -> Result<Json<RespIndex>, String> {
     let mut cache = state.cache.write().unwrap();
     match maybe_text_bodies {
         Some(Json(text_bodies)) => {
@@ -59,7 +62,7 @@ fn index_create(
                         let n = index.len();
                         cache.insert(index_name.clone(), index);
 
-                        Json(RespIndexGet {
+                        Json(RespIndex {
                             index: index_name,
                             size: n,
                         })
@@ -69,7 +72,7 @@ fn index_create(
         None => {
             cache.insert(index_name.clone(), GuardedIndex::empty());
 
-            Ok(Json(RespIndexGet {
+            Ok(Json(RespIndex {
                 index: index_name,
                 size: 0,
             }))
@@ -78,12 +81,9 @@ fn index_create(
 }
 
 #[get("/index/<index_name>")]
-fn index_read(
-    index_name: String,
-    state: &State<ServerState>,
-) -> Result<Json<RespIndexGet>, String> {
+fn index_read(index_name: String, state: &State<ServerState>) -> Result<Json<RespIndex>, String> {
     match state.cache.read().unwrap().get(&index_name) {
-        Some(index) => Ok(Json(RespIndexGet {
+        Some(index) => Ok(Json(RespIndex {
             index: index_name,
             size: index.len(),
         })),
@@ -92,22 +92,19 @@ fn index_read(
 }
 
 #[put("/index/<index_name>")]
-fn index_update(index_name: String) -> Result<Json<RespIndexGet>, String> {
-    Ok(Json(RespIndexGet {
+fn index_update(index_name: String) -> Result<Json<RespIndex>, String> {
+    Ok(Json(RespIndex {
         index: index_name,
         size: 0,
     }))
 }
 
 #[delete("/index/<index_name>")]
-fn index_delete(
-    index_name: String,
-    state: &State<ServerState>,
-) -> Result<Json<RespIndexGet>, String> {
+fn index_delete(index_name: String, state: &State<ServerState>) -> Result<Json<RespIndex>, String> {
     let mut cache = state.cache.write().unwrap();
 
     match cache.remove(&index_name) {
-        Some(index) => Ok(Json(RespIndexGet {
+        Some(index) => Ok(Json(RespIndex {
             index: index_name,
             size: index.len(),
         })),
@@ -116,8 +113,16 @@ fn index_delete(
 }
 
 #[get("/")]
-fn root() -> String {
-    "Scout, at your service.".to_string()
+fn root() -> content::RawHtml<String> {
+    content::RawHtml(format!(
+        "<html>
+            <body>
+                <h1>Scout, <em>at your service</em></h1>
+                <p>{:?}</p>
+            </body>
+        </html>",
+        SystemTime::now()
+    ))
 }
 
 struct ServerState {
