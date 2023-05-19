@@ -47,6 +47,14 @@ struct RespError {
     error: String,
 }
 
+fn json_resp_index(index: String, size: usize) -> Json<RespIndex> {
+    Json(RespIndex { index, size })
+}
+
+fn json_error<T>(status: Status, error: String) -> Result<T, Custom<Json<RespError>>> {
+    Err(Custom(status, Json(RespError { error })))
+}
+
 #[post("/index/<index_name>", data = "<maybe_text_bodies>")]
 fn index_create(
     index_name: String,
@@ -92,16 +100,8 @@ fn index_read(
     state: &State<ServerState>,
 ) -> Result<Json<RespIndex>, Custom<Json<RespError>>> {
     match state.cache.read().unwrap().get(&index_name) {
-        Some(index) => Ok(Json(RespIndex {
-            index: index_name,
-            size: index.len(),
-        })),
-        None => Err(Custom(
-            Status::NotFound,
-            Json(RespError {
-                error: format!("{index_name} not found"),
-            }),
-        )),
+        Some(index) => Ok(json_resp_index(index_name, index.len())),
+        None => json_error(Status::NotFound, format!("{index_name} not found")),
     }
 }
 
