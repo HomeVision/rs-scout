@@ -67,6 +67,23 @@ impl GuardedIndex {
     }
 
     #[allow(dead_code)]
+    pub fn append_contents(
+        &self,
+        texts: &mut Vec<TextBody>,
+        embeddings: &mut Vec<sbert::Embeddings>,
+    ) -> Result<(), String> {
+        if texts.len() != embeddings.len() {
+            return err_mesg_unequal_lens(texts.len(), embeddings.len());
+        }
+
+        let mut idx = self.index.write().unwrap();
+        idx.texts.append(texts);
+        idx.embeddings.append(embeddings);
+
+        Ok(())
+    }
+
+    #[allow(dead_code)]
     pub fn texts(&self) -> Vec<TextBody> {
         self.index.read().unwrap().texts.to_vec()
     }
@@ -121,8 +138,8 @@ mod tests {
         let index = GuardedIndex::new(vec![], vec![]).expect("Could not create index");
 
         let texts = vec![TextBody {
-            id: String::from("id"),
-            text: String::from("text"),
+            id: "id".to_string(),
+            text: "text".to_string(),
         }];
 
         let embeddings: Vec<sbert::Embeddings> = vec![vec![1.0, 0.0]];
@@ -138,6 +155,19 @@ mod tests {
             .search_knn(&vec![1.0, 0.0], 2)
             .expect("Could not search_knn");
 
-        assert_eq!(results.len(), 1)
+        assert_eq!(results.len(), 1);
+
+        let mut new_texts = vec![TextBody {
+            id: "id-new".to_string(),
+            text: "text-new".to_string(),
+        }];
+
+        let mut new_embeddings = vec![vec![0.0, 1.0]];
+
+        index
+            .append_contents(&mut new_texts, &mut new_embeddings)
+            .expect("Could not append");
+
+        assert_eq!(index.len(), 2);
     }
 }
