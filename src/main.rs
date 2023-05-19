@@ -61,8 +61,25 @@ struct RespIndexGet {
     size: usize,
 }
 
+#[post("/index/<index_name>")]
+fn index_create(
+    index_name: String,
+    state: &State<ServerState>,
+) -> Result<Json<RespIndexGet>, String> {
+    let mut cache = state.cache.write().unwrap();
+    cache.insert(index_name, GuardedIndex::empty());
+
+    return Ok(Json(RespIndexGet {
+        index: String::from("foo"),
+        size: 0,
+    }));
+}
+
 #[get("/index/<index_name>")]
-fn index_get(index_name: String, state: &State<ServerState>) -> Result<Json<RespIndexGet>, String> {
+fn index_read(
+    index_name: String,
+    state: &State<ServerState>,
+) -> Result<Json<RespIndexGet>, String> {
     state
         .cache
         .read()
@@ -76,18 +93,20 @@ fn index_get(index_name: String, state: &State<ServerState>) -> Result<Json<Resp
         })
 }
 
-#[post("/index/<index_name>")]
-fn index_create(
+#[delete("/index/<index_name>")]
+fn index_delete(
     index_name: String,
     state: &State<ServerState>,
 ) -> Result<Json<RespIndexGet>, String> {
     let mut cache = state.cache.write().unwrap();
-    cache.insert(index_name, GuardedIndex::empty());
 
-    return Ok(Json(RespIndexGet {
-        index: String::from("foo"),
-        size: 0,
-    }));
+    match cache.remove(&index_name) {
+        Some(index) => Ok(Json(RespIndexGet {
+            index: index_name,
+            size: index.len(),
+        })),
+        None => Err(String::from("Not Found")),
+    }
 }
 
 #[get("/")]
@@ -113,6 +132,6 @@ fn rocket() -> _ {
     };
 
     rocket::build()
-        .mount("/", routes![root, index_get, index_create])
+        .mount("/", routes![root, index_create, index_read, index_delete])
         .manage(state)
 }
