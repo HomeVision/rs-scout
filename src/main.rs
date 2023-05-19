@@ -100,7 +100,6 @@ fn index_create(
     match maybe_text_bodies {
         Some(Json(text_bodies)) => {
             let model = state.model.lock().unwrap();
-
             compute_text_bodies_embeddings(&model, &text_bodies)
                 .and_then(|embeddings| create_guarded_index(text_bodies, embeddings))
                 .and_then(|index| {
@@ -133,10 +132,24 @@ fn index_update(
     index_name: String,
     text_bodies: Json<Vec<TextBody>>,
     state: &State<ServerState>,
-) -> Result<Json<RespIndex>, String> {
-    let text_bodies = text_bodies.to_vec();
+) -> Result<Json<RespIndex>, Custom<Json<RespError>>> {
+    let cache = state.cache.write().unwrap();
+    match cache.get(&index_name) {
+        Some(index) => {
+            let mut text_bodies = text_bodies.to_vec();
+            let model = state.model.lock().unwrap();
 
-    json_ok_resp_index(index_name, 999)
+            compute_text_bodies_embeddings(&model, &text_bodies).and_then(|embeddings| {
+                let mut mut_embeddings = embeddings;
+
+                index
+                    .append_contents(&mut text_bodies, &mut mut_embeddings)
+                    .map_err(|err| resp_error_with_status(Status::InternalServerError, err))
+                    .and(json_ok_resp_index(index_name, index.len()))
+            })
+        }
+        None => json_error(Status::NotFound, format!("{index_name} is not found")),
+    }
 }
 
 #[delete("/index/<index_name>")]
