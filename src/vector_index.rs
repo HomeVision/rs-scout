@@ -26,9 +26,9 @@ pub struct GuardedIndex {
 }
 
 fn err_mesg_unequal_lens<T>(texts_len: usize, embeddings_len: usize) -> Result<T, String> {
-    return Err(format!(
+    Err(format!(
         "texts (len={texts_len}) and embeddings (len={embeddings_len}) have unequal lengths",
-    ));
+    ))
 }
 
 impl GuardedIndex {
@@ -40,15 +40,16 @@ impl GuardedIndex {
             return err_mesg_unequal_lens(texts.len(), embeddings.len());
         }
 
-        return Ok(GuardedIndex {
+        Ok(GuardedIndex {
             index: sync::RwLock::new(Index { texts, embeddings }),
-        });
+        })
     }
 
     pub fn empty() -> GuardedIndex {
         GuardedIndex::new(vec![], vec![]).unwrap()
     }
 
+    #[allow(dead_code)]
     pub fn replace_contents(
         &self,
         texts: Vec<TextBody>,
@@ -65,28 +66,23 @@ impl GuardedIndex {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn texts(&self) -> Vec<TextBody> {
-        self.index
-            .read()
-            .unwrap()
-            .texts
-            .iter()
-            .map(|t| t.clone())
-            .collect()
+        self.index.read().unwrap().texts.to_vec()
     }
 
+    #[allow(dead_code)]
     pub fn embeddings(&self) -> Vec<Embeddings> {
-        self.index
-            .read()
-            .unwrap()
-            .embeddings
-            .iter()
-            .map(|e| e.clone())
-            .collect()
+        self.index.read().unwrap().embeddings.to_vec()
     }
 
     pub fn len(&self) -> usize {
         self.index.read().unwrap().texts.len()
+    }
+
+    #[allow(dead_code)]
+    pub fn is_empty(&self) -> bool {
+        self.index.read().unwrap().texts.is_empty()
     }
 
     pub fn search_knn(

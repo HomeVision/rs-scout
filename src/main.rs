@@ -15,48 +15,6 @@ use vector_index::{GuardedIndex, SearchResult, TextBody};
 mod sent_transform;
 mod vector_index;
 
-fn main_old() {
-    println!("Hello, world!");
-
-    let query: &'static str = "military";
-    let texts = [
-        "NATO is a mutual defense organization.",
-        "The Access fund does rock climbing advocacy.",
-    ];
-
-    let sbert_model = match sent_transform::load_model() {
-        Ok(model) => model,
-        Err(err) => panic!("Failed to load model: {err}"),
-    };
-
-    let embeddings =
-        match sent_transform::compute_normalized_embeddings(&sbert_model, texts.as_ref()) {
-            Ok(embeddings) => embeddings,
-            Err(err) => panic!("Failed to compute embeddings: {err}"),
-        };
-
-    let query_embedding = match sent_transform::compute_normalized_embedding(&sbert_model, query) {
-        Ok(embedding) => embedding,
-        Err(err) => panic!("Failed to compute query embedding: {err}"),
-    };
-
-    let results = match sent_transform::search_knn(&query_embedding, &embeddings, 3) {
-        Ok(res) => res,
-        Err(err) => panic!("Failed to search_knn: {err}"),
-    };
-
-    println!("Query: {query}");
-    for (idx, result) in results.iter().enumerate() {
-        println!(
-            "Result {:2}: Index={:4}, Score={:6.3} {}",
-            idx + 1,
-            result.index,
-            result.score,
-            texts[result.index]
-        );
-    }
-}
-
 #[get("/index/<index_name>/query?<q>")]
 fn query_index(
     index_name: String,
@@ -69,11 +27,7 @@ fn query_index(
     match cache.get(&index_name) {
         Some(index) => compute_normalized_embedding(&model, &q)
             .map_err(|err| format!("Error computing embedding: {err}"))
-            .and_then(|query_embedding| {
-                index
-                    .search_knn(&query_embedding, 3)
-                    .map(|results| Json(results))
-            }),
+            .and_then(|query_embedding| index.search_knn(&query_embedding, 3).map(Json)),
         None => Err(format!("Index {index_name} not found")),
     }
 }
@@ -138,10 +92,7 @@ fn index_read(
 }
 
 #[put("/index/<index_name>")]
-fn index_update(
-    index_name: String,
-    state: &State<ServerState>,
-) -> Result<Json<RespIndexGet>, String> {
+fn index_update(index_name: String) -> Result<Json<RespIndexGet>, String> {
     Ok(Json(RespIndexGet {
         index: index_name,
         size: 0,
@@ -166,7 +117,7 @@ fn index_delete(
 
 #[get("/")]
 fn root() -> String {
-    format!("Scout, at your service.")
+    "Scout, at your service.".to_string()
 }
 
 struct ServerState {
