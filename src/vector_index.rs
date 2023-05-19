@@ -1,13 +1,15 @@
 use crate::sent_transform;
+use rocket::serde::{Deserialize, Serialize};
 use sbert::{self, Embeddings};
 use std::sync;
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct TextBody {
     pub id: String,
     pub text: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SearchResult {
     pub id: String,
     pub text: String,
