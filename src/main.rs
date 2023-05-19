@@ -47,8 +47,10 @@ struct RespError {
     error: String,
 }
 
-fn json_resp_index(index: String, size: usize) -> Json<RespIndex> {
-    Json(RespIndex { index, size })
+type JsonRespError = Custom<Json<RespError>>;
+
+fn json_ok_resp_index<E>(index: String, size: usize) -> Result<Json<RespIndex>, E> {
+    Ok(Json(RespIndex { index, size }))
 }
 
 fn json_error<T>(status: Status, error: String) -> Result<T, Custom<Json<RespError>>> {
@@ -72,14 +74,14 @@ fn index_create(
             compute_normalized_embeddings(&model, &text_strs)
                 .map_err(|e| format!("Error computing embeddings: {e}"))
                 .and_then(|embeddings| {
-                    GuardedIndex::new(text_bodies, embeddings).map(|index| {
+                    GuardedIndex::new(text_bodies, embeddings).and_then(|index| {
                         let n = index.len();
                         cache.insert(index_name.clone(), index);
 
-                        Json(RespIndex {
+                        Ok(Json(RespIndex {
                             index: index_name,
                             size: n,
-                        })
+                        }))
                     })
                 })
         }
@@ -98,31 +100,28 @@ fn index_create(
 fn index_read(
     index_name: String,
     state: &State<ServerState>,
-) -> Result<Json<RespIndex>, Custom<Json<RespError>>> {
+) -> Result<Json<RespIndex>, JsonRespError> {
     match state.cache.read().unwrap().get(&index_name) {
-        Some(index) => Ok(json_resp_index(index_name, index.len())),
+        Some(index) => json_ok_resp_index(index_name, index.len()),
         None => json_error(Status::NotFound, format!("{index_name} not found")),
     }
 }
 
 #[put("/index/<index_name>")]
 fn index_update(index_name: String) -> Result<Json<RespIndex>, String> {
-    Ok(Json(RespIndex {
-        index: index_name,
-        size: 0,
-    }))
+    json_ok_resp_index(index_name, 999)
 }
 
 #[delete("/index/<index_name>")]
-fn index_delete(index_name: String, state: &State<ServerState>) -> Result<Json<RespIndex>, String> {
+fn index_delete(
+    index_name: String,
+    state: &State<ServerState>,
+) -> Result<Json<RespIndex>, JsonRespError> {
     let mut cache = state.cache.write().unwrap();
 
     match cache.remove(&index_name) {
-        Some(index) => Ok(Json(RespIndex {
-            index: index_name,
-            size: index.len(),
-        })),
-        None => Err(String::from("Not Found")),
+        Some(index) => json_ok_resp_index(index_name, index.len()),
+        None => json_error(Status::NotFound, format!("{index_name} not found")),
     }
 }
 
