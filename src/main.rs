@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::{http::RawStr, State};
+use rocket::serde::json::Json;
+use rocket::serde::Serialize;
+use rocket::State;
+
 use std::sync;
 
 mod sent_transform;
@@ -49,9 +52,19 @@ fn main_old() {
     }
 }
 
-#[get("/index/<name>")]
-fn index_get(name: String) -> String {
-    format!("Hello, {}", name)
+#[derive(Serialize)]
+struct Foo {
+    id: u32,
+    name: String,
+}
+
+#[get("/index/<index>")]
+fn index_get(index: String) -> Json<Foo> {
+    let f = Foo {
+        id: 123,
+        name: index,
+    };
+    Json(f)
 }
 
 #[get("/")]
