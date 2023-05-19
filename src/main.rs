@@ -64,6 +64,10 @@ fn index_create(
     state: &State<ServerState>,
 ) -> Result<Json<RespIndex>, JsonRespError> {
     let mut cache = state.cache.write().unwrap();
+    if cache.contains_key(&index_name) {
+        return json_error(Status::BadRequest, format!("{index_name} already exists."));
+    }
+
     match maybe_text_bodies {
         Some(Json(text_bodies)) => {
             let model = state.model.lock().unwrap();
