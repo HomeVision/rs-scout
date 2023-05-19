@@ -5,8 +5,10 @@ use rocket::serde::json::Json;
 use rocket::serde::Serialize;
 use rocket::State;
 
+use sent_transform::{load_model, SentenceTransformer};
 use std::collections::HashMap;
-use std::sync;
+use std::sync::{Arc, Mutex, RwLock};
+use vector_index::GuardedIndex;
 
 mod sent_transform;
 mod vector_index;
@@ -74,14 +76,25 @@ fn index_get(index_name: String, state: &State<ServerState>) -> Result<Json<Resp
         })
 }
 
+#[post("/index/<index_name>")]
+fn index_create(
+    index_name: String,
+    state: &State<ServerState>,
+) -> Result<Json<RespIndexGet>, String> {
+    return Ok(Json(RespIndexGet {
+        index: String::from("foo"),
+        size: 0,
+    }));
+}
+
 #[get("/")]
 fn root() -> String {
     format!("Scout, at your service.")
 }
 
 struct ServerState {
-    model: sync::Mutex<sent_transform::SentenceTransformer>,
-    cache: sync::RwLock<HashMap<String, vector_index::GuardedIndex>>,
+    model: Mutex<SentenceTransformer>,
+    cache: Arc<RwLock<HashMap<String, GuardedIndex>>>,
 }
 
 #[launch]
@@ -92,11 +105,11 @@ fn rocket() -> _ {
     };
 
     let state = ServerState {
-        model: sync::Mutex::new(model),
-        cache: sync::RwLock::new(HashMap::new()),
+        model: Mutex::new(model),
+        cache: Arc::new(RwLock::new(HashMap::new())),
     };
 
     rocket::build()
-        .mount("/", routes![root, index_get])
+        .mount("/", routes![root, index_get, index_create])
         .manage(state)
 }
