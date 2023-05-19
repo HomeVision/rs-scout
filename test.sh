@@ -21,6 +21,7 @@ function update_index() {
 }
 
 make_curl $HOST && \
+  make_curl -X POST -d '[]' $HOST/index/$INDEX && \
   make_curl -X PUT -d '[{"id": "1", "text": "NATO is a mutual defense organization."}]' $HOST/index/$INDEX && \
   make_curl -X PUT -d '[{"id": "2", "text": "The Access fund does rock climbing advocacy"}]' $HOST/index/$INDEX && \
   make_curl $HOST/index/$INDEX/query\?q\="NATO" && \
