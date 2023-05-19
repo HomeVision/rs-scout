@@ -78,20 +78,14 @@ fn index_create(
                         let n = index.len();
                         cache.insert(index_name.clone(), index);
 
-                        Ok(Json(RespIndex {
-                            index: index_name,
-                            size: n,
-                        }))
+                        json_ok_resp_index(index_name, n)
                     })
                 })
         }
         None => {
             cache.insert(index_name.clone(), GuardedIndex::empty());
 
-            Ok(Json(RespIndex {
-                index: index_name,
-                size: 0,
-            }))
+            json_ok_resp_index(index_name, 0)
         }
     }
 }
