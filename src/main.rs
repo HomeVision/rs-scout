@@ -81,6 +81,9 @@ fn index_create(
     index_name: String,
     state: &State<ServerState>,
 ) -> Result<Json<RespIndexGet>, String> {
+    let mut cache = state.cache.write().unwrap();
+    cache.insert(index_name, GuardedIndex::empty());
+
     return Ok(Json(RespIndexGet {
         index: String::from("foo"),
         size: 0,

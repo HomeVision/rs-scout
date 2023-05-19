@@ -43,6 +43,10 @@ impl GuardedIndex {
         });
     }
 
+    pub fn empty() -> GuardedIndex {
+        GuardedIndex::new(vec![], vec![]).unwrap()
+    }
+
     pub fn replace_contents(
         &self,
         texts: Vec<TextBody>,
