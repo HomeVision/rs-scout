@@ -5,6 +5,7 @@ use rocket::serde::json::Json;
 use rocket::serde::Serialize;
 use rocket::State;
 
+use std::collections::HashMap;
 use std::sync;
 
 mod sent_transform;
@@ -53,18 +54,13 @@ fn main_old() {
 }
 
 #[derive(Serialize)]
-struct Foo {
-    id: u32,
-    name: String,
+struct RespIndexGet {
+    index: String,
 }
 
 #[get("/index/<index>")]
-fn index_get(index: String) -> Json<Foo> {
-    let f = Foo {
-        id: 123,
-        name: index,
-    };
-    Json(f)
+fn index_get(index: String, state: &State<ServerState>) -> Result<Json<RespIndexGet>, String> {
+    Ok(Json(RespIndexGet { index }))
 }
 
 #[get("/")]
@@ -74,6 +70,7 @@ fn root() -> String {
 
 struct ServerState {
     model: sync::Mutex<sent_transform::SentenceTransformer>,
+    cache: sync::RwLock<HashMap<String, vector_index::GuardedIndex>>,
 }
 
 #[launch]
@@ -85,6 +82,7 @@ fn rocket() -> _ {
 
     let state = ServerState {
         model: sync::Mutex::new(model),
+        cache: sync::RwLock::new(HashMap::new()),
     };
 
     rocket::build()
