@@ -2251,7 +2251,6 @@ dependencies = [
  "rocket_contrib",
  "sbert",
  "serde",
- "serde_json",
 ]
 
 [[package]]

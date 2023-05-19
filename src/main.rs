@@ -8,7 +8,7 @@ use rocket::State;
 use sent_transform::{load_model, SentenceTransformer};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
-use vector_index::GuardedIndex;
+use vector_index::{GuardedIndex, TextBody};
 
 mod sent_transform;
 mod vector_index;
@@ -61,11 +61,14 @@ struct RespIndexGet {
     size: usize,
 }
 
-#[post("/index/<index_name>")]
+#[post("/index/<index_name>", data = "<text_bodies>")]
 fn index_create(
     index_name: String,
+    text_bodies: Option<Json<Vec<TextBody>>>,
     state: &State<ServerState>,
 ) -> Result<Json<RespIndexGet>, String> {
+    println!("{:?}", text_bodies);
+
     let mut cache = state.cache.write().unwrap();
     cache.insert(index_name, GuardedIndex::empty());
 
@@ -128,7 +131,7 @@ struct ServerState {
 
 #[launch]
 fn rocket() -> _ {
-    let model = match sent_transform::load_model() {
+    let model = match load_model() {
         Ok(m) => m,
         Err(e) => panic!("Failed to load sentence_transformer: {e}"),
     };
