@@ -196,6 +196,9 @@ struct ServerState {
 }
 
 const DEFAULT_MODEL_PATH: &str = "models/distiluse-base-multilingual-cased-converted";
+const DEFAULT_ADDRESS: &str = "0.0.0.0";
+const DEFAULT_PORT: u16 = 8000;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let model_path = env::var("MODEL_PATH").unwrap_or(String::from(DEFAULT_MODEL_PATH));
@@ -209,6 +212,11 @@ async fn main() -> std::io::Result<()> {
         cache: Arc::new(RwLock::new(HashMap::new())),
     });
 
+    let address = env::var("SCOUT_ADDRESS").unwrap_or(String::from(DEFAULT_ADDRESS));
+    let port: u16 = env::var("SCOUT_PORT")
+        .map(|port_str| port_str.parse::<u16>().unwrap_or(DEFAULT_PORT))
+        .unwrap_or(DEFAULT_PORT);
+
     HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
@@ -219,7 +227,7 @@ async fn main() -> std::io::Result<()> {
             .service(index_delete)
             .service(query_index)
     })
-    .bind(("0.0.0.0", 8000))?
+    .bind((address, port))?
     .run()
     .await
 }
