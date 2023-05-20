@@ -1,7 +1,9 @@
 mod sent_transform;
 mod vector_index;
 
-use actix_web::{get, post, web, App, Error, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{
+    get, post, web, App, Error, HttpResponse, HttpResponseBuilder, HttpServer, Responder, Result,
+};
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
 };
@@ -42,23 +44,29 @@ fn create_guarded_index(
     GuardedIndex::new(text_bodies, embeddings)
 }
 
+fn ok_resp_index(index: String, size: usize) -> HttpResponse {
+    HttpResponse::Ok().json(RespIndex { index, size })
+}
+
+fn resp_error(mut status: HttpResponseBuilder, error: String) -> HttpResponse {
+    status.json(RespError { ok: false, error })
+}
+
 #[post("/index/{index_name}")]
 async fn index_create(
     index_name: web::Path<String>,
     maybe_text_bodies: Option<web::Json<Vec<TextBody>>>,
     state: web::Data<ServerState>,
 ) -> impl Responder {
-    println!("GETTGING CACHE");
     let index_name = index_name.to_string();
     let mut cache = state.cache.write().unwrap();
     if cache.contains_key(&index_name) {
-        return HttpResponse::BadRequest().json(RespError {
-            ok: false,
-            error: format!("{index_name} already exists"),
-        });
+        return resp_error(
+            HttpResponse::BadRequest(),
+            format!("{index_name} already exists"),
+        );
     }
 
-    println!("req = {:?}", maybe_text_bodies);
     match maybe_text_bodies {
         Some(text_bodies) => {
             let text_bodies = text_bodies.to_vec();
@@ -72,54 +80,27 @@ async fn index_create(
                     let n = index.len();
                     cache.insert(index_name.clone(), index);
 
-                    HttpResponse::Ok().json(RespIndex {
-                        index: index_name,
-                        size: n,
-                    })
+                    ok_resp_index(index_name, n)
                 }
-                Err(error) => {
-                    HttpResponse::InternalServerError().json(RespError { ok: false, error })
-                }
+                Err(error) => resp_error(HttpResponse::InternalServerError(), error),
             }
         }
         None => {
             cache.insert(index_name.clone(), GuardedIndex::empty());
-            HttpResponse::Ok().json(RespIndex {
-                index: index_name,
-                size: 0,
-            })
+            ok_resp_index(index_name, 0)
         }
     }
 }
 
-// fn index_create(
-//     index_name: String,
-//     maybe_text_bodies: Option<Json<Vec<TextBody>>>,
-//     state: &State<ServerState>,
-// ) -> Result<Json<RespIndex>, JsonRespError> {
-//     let mut cache = state.cache.write().unwrap();
-//     if cache.contains_key(&index_name) {
-//         return json_error(Status::BadRequest, format!("{index_name} already exists."));
-//     }
+#[get("/index/{index_name}")]
+async fn index_read(index_name: web::Path<String>, state: web::Data<ServerState>) -> HttpResponse {
+    let index_name = index_name.to_string();
 
-//     match maybe_text_bodies {
-//         Some(Json(text_bodies)) => {
-//             let model = state.model.lock().unwrap();
-//             compute_text_bodies_embeddings(&model, &text_bodies)
-//                 .and_then(|embeddings| create_guarded_index(text_bodies, embeddings))
-//                 .and_then(|index| {
-//                     let n = index.len();
-//                     cache.insert(index_name.clone(), index);
-
-//                     json_ok_resp_index(index_name, n)
-//                 })
-//         }
-//         None => {
-//             cache.insert(index_name.clone(), GuardedIndex::empty());
-//             json_ok_resp_index(index_name, 1)
-//         }
-//     }
-// }
+    match state.cache.read().unwrap().get(&index_name) {
+        Some(index) => ok_resp_index(index_name, index.len()),
+        None => resp_error(HttpResponse::NotFound(), format!("{index_name} not found")),
+    }
+}
 
 #[get("/")]
 async fn root() -> impl Responder {
@@ -158,6 +139,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(state.clone())
             .service(root)
             .service(index_create)
+            .service(index_read)
     })
     .bind(("0.0.0.0", 8000))?
     .run()
