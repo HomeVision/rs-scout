@@ -19,10 +19,11 @@ DOCKER_REMOTE="homevision/$DOCKER_IMAGE_NAME"
 function build {
   GITSHA=$(git log -1 --pretty=format:%h)
   echo "Building $DOCKER_IMAGE_NAME $GITSHA"
-  docker build --file $DOCKER_FILE_NAME --build-arg GITSHA="$GITSHA" --tag "$DOCKER_REMOTE" .
+  docker build --progress=auto --file $DOCKER_FILE_NAME --build-arg GITSHA="$GITSHA" --tag "$DOCKER_REMOTE" .
 }
 
 function clean {
+  docker ps -a | grep $DOCKER_IMAGE_NAME | awk '{print $1}' | grep -v IMAGE | xargs docker rm
   docker images | grep "$DOCKER_IMAGE_NAME" | grep -v latest | awk '{print $3}' | xargs docker rmi
   docker images | grep '^<none>' | awk '{print $3}' | xargs docker rmi
 }

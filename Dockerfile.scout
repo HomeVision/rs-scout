@@ -1,4 +1,21 @@
 FROM rustlang/rust:nightly-bullseye-slim
+EXPOSE 80
+
+RUN mkdir -p /root/rs-scout/models && mkdir -p /root/rs-scout/src
+WORKDIR /root/rs-scout
+
+RUN apt update -y && apt install -y wget libssl-dev pkg-config g++
+RUN wget -q -P models/ https://homevision-public.s3.us-west-2.amazonaws.com/distiluse-base-multilingual-cased-converted.tar.gz
+RUN cd models && tar -xvzf distiluse-base-multilingual-cased-converted.tar.gz && rm distiluse-base-multilingual-cased-converted.tar.gz
+
+COPY Rocket.toml Cargo.toml Cargo.lock ./
+COPY src/ src/
+RUN cargo build --release
+
+ENV ROCKET_PORT=80
+ENV ROCKET_ADDRESS=0.0.0.0
+
+CMD ["cargo", "run", "--release"]
 
 
 
