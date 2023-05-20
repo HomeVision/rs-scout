@@ -1,6 +1,6 @@
 use crate::sent_transform;
-use rocket::serde::{Deserialize, Serialize};
 use sbert::{self, Embeddings};
+use serde::{Deserialize, Serialize};
 use std::sync;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
