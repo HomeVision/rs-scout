@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = { version = "0.5.0-rc.3", features = ["json"] }
+# rocket = { version = "0.5.0-rc.3", features = ["json"] }
+actix-web = "4"
 sbert = "0.3.0"
 serde = "1.0.163"
 # serde_json = "1.0.96"
