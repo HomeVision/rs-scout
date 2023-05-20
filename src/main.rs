@@ -1,7 +1,7 @@
 mod sent_transform;
 mod vector_index;
 
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{get, post, web, App, Error, HttpResponse, HttpServer, Responder, Result};
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
 };
@@ -29,15 +29,22 @@ async fn index_create(
     index_name: web::Path<String>,
     maybe_text_bodies: Option<web::Json<Vec<TextBody>>>,
     state: web::Data<ServerState>,
-) -> Result<impl Responder> {
+) -> impl Responder {
     let index_name = index_name.to_string();
 
     println!("req = {:?}", maybe_text_bodies);
 
-    Ok(web::Json(RespIndex {
-        index: index_name,
-        size: 0,
-    }))
+    if true {
+        return HttpResponse::BadRequest().json(RespError {
+            ok: false,
+            error: format!(""),
+        });
+    }
+
+    HttpResponse::Ok().json(RespIndex {
+        index: format!("INX"),
+        size: 9,
+    })
 }
 
 // fn index_create(
