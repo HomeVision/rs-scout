@@ -2,7 +2,7 @@ mod sent_transform;
 mod vector_index;
 
 use actix_web::{
-    get, post, web, App, Error, HttpResponse, HttpResponseBuilder, HttpServer, Responder, Result,
+    get, post, put, web, App, HttpResponse, HttpResponseBuilder, HttpServer, Responder, Result,
 };
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
@@ -114,7 +114,36 @@ async fn root() -> impl Responder {
         SystemTime::now()
     ))
 }
+#[put("/index/<index_name>")]
+async fn index_update(
+    index_name: web::Path<String>,
+    text_bodies: web::Json<Vec<TextBody>>,
+    state: web::Data<ServerState>,
+) -> HttpResponse {
+    let index_name = index_name.to_string();
+    let cache = state.cache.write().unwrap();
+    match cache.get(&index_name) {
+        Some(index) => {
+            let mut text_bodies = text_bodies.to_vec();
+            let model = state.model.lock().unwrap();
 
+            compute_text_bodies_embeddings(&model, &text_bodies)
+                .and_then(|embeddings| {
+                    let mut mut_embeddings = embeddings;
+
+                    index.append_contents(&mut text_bodies, &mut mut_embeddings)
+                })
+                .map_or_else(
+                    |error| resp_error(HttpResponse::InternalServerError(), error),
+                    |()| ok_resp_index(index_name, index.len()),
+                )
+        }
+        None => resp_error(
+            HttpResponse::NotFound(),
+            format!("{index_name} is not found"),
+        ),
+    }
+}
 struct ServerState {
     model: Mutex<SentenceTransformer>,
     cache: Arc<RwLock<HashMap<String, GuardedIndex>>>,
@@ -140,6 +169,7 @@ async fn main() -> std::io::Result<()> {
             .service(root)
             .service(index_create)
             .service(index_read)
+            .service(index_update)
     })
     .bind(("0.0.0.0", 8000))?
     .run()
