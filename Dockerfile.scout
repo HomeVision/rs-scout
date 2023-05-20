@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly-bullseye-slim
+FROM rust:1.69-slim-bullseye
 EXPOSE 80
 
 RUN mkdir -p /root/rs-scout/models && mkdir -p /root/rs-scout/src
@@ -12,8 +12,8 @@ COPY Rocket.toml Cargo.toml Cargo.lock ./
 COPY src/ src/
 RUN cargo build --release
 
-ENV ROCKET_PORT=80
-ENV ROCKET_ADDRESS=0.0.0.0
+ENV SCOUT_PORT=80
+ENV SCOUT_ADDRESS=0.0.0.0
 
 CMD ["cargo", "run", "--release"]
 
