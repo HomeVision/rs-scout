@@ -8,12 +8,42 @@ use actix_web::{
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::SystemTime;
-use vector_index::{GuardedIndex, SearchResult, TextBody};
+use vector_index::{GuardedIndex, TextBody};
+
+#[derive(Deserialize)]
+struct QueryParams {
+    q: String,
+}
+
+#[get("/index/{index_name}/query")]
+async fn query_index(
+    index_name: web::Path<String>,
+    params: web::Query<QueryParams>,
+    state: web::Data<ServerState>,
+) -> HttpResponse {
+    let index_name = index_name.to_string();
+    let cache = state.cache.read().unwrap();
+    let model = state.model.lock().unwrap();
+
+    match cache.get(&index_name) {
+        Some(index) => compute_normalized_embedding(&model, &params.q)
+            .map_err(|err| format!("Error computing embedding: {err}"))
+            .and_then(|query_embedding| index.search_knn(&query_embedding, 3))
+            .map_or_else(
+                |error| resp_error(HttpResponse::InternalServerError(), error),
+                |results| HttpResponse::Ok().json(results),
+            ),
+        None => resp_error(
+            HttpResponse::NotFound(),
+            format!("Index {index_name} not found"),
+        ),
+    }
+}
 
 #[derive(Serialize)]
 struct RespIndex {
@@ -115,7 +145,7 @@ async fn root() -> impl Responder {
         SystemTime::now()
     ))
 }
-#[put("/index/<index_name>")]
+#[put("/index/{index_name}")]
 async fn index_update(
     index_name: web::Path<String>,
     text_bodies: web::Json<Vec<TextBody>>,
@@ -187,6 +217,7 @@ async fn main() -> std::io::Result<()> {
             .service(index_read)
             .service(index_update)
             .service(index_delete)
+            .service(query_index)
     })
     .bind(("0.0.0.0", 8000))?
     .run()

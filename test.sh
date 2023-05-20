@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# HOST=http://143.244.214.208
+# HOST=https://goscout.online
 HOST=http://localhost:8000
 INDEX=foo
 
