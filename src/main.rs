@@ -1,5 +1,70 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+mod sent_transform;
+mod vector_index;
+
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use sent_transform::{
+    compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
+};
+use serde::Serialize;
+use std::collections::HashMap;
+use std::env;
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::SystemTime;
+use vector_index::{GuardedIndex, SearchResult, TextBody};
+
+#[derive(Serialize)]
+struct RespIndex {
+    index: String,
+    size: usize,
+}
+
+#[derive(Serialize)]
+struct RespError {
+    ok: bool,
+    error: String,
+}
+
+#[post("/index/{index_name}")]
+async fn index_create(
+    index_name: web::Path<String>,
+    state: web::Data<ServerState>,
+) -> Result<impl Responder> {
+    let index_name = index_name.to_string();
+
+    Ok(web::Json(RespIndex {
+        index: index_name,
+        size: 0,
+    }))
+}
+
+// fn index_create(
+//     index_name: String,
+//     maybe_text_bodies: Option<Json<Vec<TextBody>>>,
+//     state: &State<ServerState>,
+// ) -> Result<Json<RespIndex>, JsonRespError> {
+//     let mut cache = state.cache.write().unwrap();
+//     if cache.contains_key(&index_name) {
+//         return json_error(Status::BadRequest, format!("{index_name} already exists."));
+//     }
+
+//     match maybe_text_bodies {
+//         Some(Json(text_bodies)) => {
+//             let model = state.model.lock().unwrap();
+//             compute_text_bodies_embeddings(&model, &text_bodies)
+//                 .and_then(|embeddings| create_guarded_index(text_bodies, embeddings))
+//                 .and_then(|index| {
+//                     let n = index.len();
+//                     cache.insert(index_name.clone(), index);
+
+//                     json_ok_resp_index(index_name, n)
+//                 })
+//         }
+//         None => {
+//             cache.insert(index_name.clone(), GuardedIndex::empty());
+//             json_ok_resp_index(index_name, 1)
+//         }
+//     }
+// }
 
 #[get("/")]
 async fn root() -> impl Responder {
@@ -14,12 +79,34 @@ async fn root() -> impl Responder {
     ))
 }
 
+struct ServerState {
+    model: Mutex<SentenceTransformer>,
+    cache: Arc<RwLock<HashMap<String, GuardedIndex>>>,
+}
+
+const DEFAULT_MODEL_PATH: &str = "models/distiluse-base-multilingual-cased-converted";
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(root))
-        .bind(("0.0.0.0", 8000))?
-        .run()
-        .await
+    let model_path = env::var("MODEL_PATH").unwrap_or(String::from(DEFAULT_MODEL_PATH));
+    let model = match load_model(&model_path) {
+        Ok(m) => m,
+        Err(e) => panic!("Failed to load sentence_transformer: {e}"),
+    };
+
+    let state = web::Data::new(ServerState {
+        model: Mutex::new(model),
+        cache: Arc::new(RwLock::new(HashMap::new())),
+    });
+
+    HttpServer::new(move || {
+        App::new()
+            .app_data(state.clone())
+            .service(root)
+            .service(index_create)
+    })
+    .bind(("0.0.0.0", 8000))?
+    .run()
+    .await
 }
 
 // #[macro_use]
