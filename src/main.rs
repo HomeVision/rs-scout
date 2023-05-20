@@ -24,27 +24,72 @@ struct RespError {
     error: String,
 }
 
+fn compute_text_bodies_embeddings(
+    model: &SentenceTransformer,
+    text_bodies: &Vec<TextBody>,
+) -> Result<Vec<Vec<f32>>, String> {
+    let text_strs: Vec<String> = text_bodies.iter().map(|tb| tb.text.clone()).collect();
+    let text_strs: Vec<&str> = text_strs.iter().map(|s| s.as_str()).collect();
+
+    compute_normalized_embeddings(model, &text_strs)
+        .map_err(|err_code| format!("TKTKTKT {err_code}"))
+}
+
+fn create_guarded_index(
+    text_bodies: Vec<TextBody>,
+    embeddings: Vec<Vec<f32>>,
+) -> Result<GuardedIndex, String> {
+    GuardedIndex::new(text_bodies, embeddings)
+}
+
 #[post("/index/{index_name}")]
 async fn index_create(
     index_name: web::Path<String>,
     maybe_text_bodies: Option<web::Json<Vec<TextBody>>>,
     state: web::Data<ServerState>,
 ) -> impl Responder {
+    println!("GETTGING CACHE");
     let index_name = index_name.to_string();
-
-    println!("req = {:?}", maybe_text_bodies);
-
-    if true {
+    let mut cache = state.cache.write().unwrap();
+    if cache.contains_key(&index_name) {
         return HttpResponse::BadRequest().json(RespError {
             ok: false,
-            error: format!(""),
+            error: format!("{index_name} already exists"),
         });
     }
 
-    HttpResponse::Ok().json(RespIndex {
-        index: format!("INX"),
-        size: 9,
-    })
+    println!("req = {:?}", maybe_text_bodies);
+    match maybe_text_bodies {
+        Some(text_bodies) => {
+            let text_bodies = text_bodies.to_vec();
+            let model = state.model.lock().unwrap();
+
+            let x = compute_text_bodies_embeddings(&model, &text_bodies)
+                .and_then(|embeddings| create_guarded_index(text_bodies, embeddings));
+
+            match x {
+                Ok(index) => {
+                    let n = index.len();
+                    cache.insert(index_name.clone(), index);
+
+                    HttpResponse::Ok().json(RespIndex {
+                        index: index_name,
+                        size: n,
+                    })
+                }
+                Err(error) => {
+                    HttpResponse::InternalServerError().json(RespError { ok: false, error })
+                }
+            }
+        }
+        None => {
+            cache.insert(index_name.clone(), GuardedIndex::empty());
+            HttpResponse::Ok().json(RespIndex {
+                index: index_name,
+                size: 0,
+            })
+        }
+    }
 }
 
 // fn index_create(
