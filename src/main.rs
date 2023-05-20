@@ -133,18 +133,6 @@ async fn index_read(index_name: web::Path<String>, state: web::Data<ServerState>
     }
 }
 
-#[get("/")]
-async fn root() -> impl Responder {
-    HttpResponse::Ok().body(format!(
-        "<html>
-            <body>
-                <h1>Scout, <em>at your service</em></h1>
-                <p>{:?}</p>
-            </body>
-        </html>",
-        SystemTime::now()
-    ))
-}
 #[put("/index/{index_name}")]
 async fn index_update(
     index_name: web::Path<String>,
@@ -190,6 +178,18 @@ async fn index_delete(
     }
 }
 
+#[get("/")]
+async fn root() -> impl Responder {
+    HttpResponse::Ok().body(format!(
+        "<html>
+            <body>
+                <h1>Scout, <em>at your service</em></h1>
+                <p>{:?}</p>
+            </body>
+        </html>",
+        SystemTime::now()
+    ))
+}
 struct ServerState {
     model: Mutex<SentenceTransformer>,
     cache: Arc<RwLock<HashMap<String, GuardedIndex>>>,
