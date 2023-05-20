@@ -27,9 +27,12 @@ struct RespError {
 #[post("/index/{index_name}")]
 async fn index_create(
     index_name: web::Path<String>,
+    maybe_text_bodies: Option<web::Json<Vec<TextBody>>>,
     state: web::Data<ServerState>,
 ) -> Result<impl Responder> {
     let index_name = index_name.to_string();
+
+    println!("req = {:?}", maybe_text_bodies);
 
     Ok(web::Json(RespIndex {
         index: index_name,
