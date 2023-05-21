@@ -65,14 +65,7 @@ fn compute_text_bodies_embeddings(
     let text_strs: Vec<&str> = text_strs.iter().map(|s| s.as_str()).collect();
 
     compute_normalized_embeddings(model, &text_strs)
-        .map_err(|err_code| format!("TKTKTKT {err_code}"))
-}
-
-fn create_guarded_index(
-    text_bodies: Vec<TextBody>,
-    embeddings: Vec<Vec<f32>>,
-) -> Result<GuardedIndex, String> {
-    GuardedIndex::new(text_bodies, embeddings)
+        .map_err(|err_code| format!("Could not compute embeddings: {err_code}"))
 }
 
 fn ok_resp_index(index: String, size: usize) -> HttpResponse {
@@ -103,18 +96,17 @@ async fn index_create(
             let text_bodies = text_bodies.to_vec();
             let model = state.model.lock().unwrap();
 
-            let x = compute_text_bodies_embeddings(&model, &text_bodies)
-                .and_then(|embeddings| create_guarded_index(text_bodies, embeddings));
+            compute_text_bodies_embeddings(&model, &text_bodies)
+                .and_then(|embeddings| GuardedIndex::new(text_bodies, embeddings))
+                .map_or_else(
+                    |error| resp_error(HttpResponse::InternalServerError(), error),
+                    |index| {
+                        let n = index.len();
+                        cache.insert(index_name.clone(), index);
 
-            match x {
-                Ok(index) => {
-                    let n = index.len();
-                    cache.insert(index_name.clone(), index);
-
-                    ok_resp_index(index_name, n)
-                }
-                Err(error) => resp_error(HttpResponse::InternalServerError(), error),
-            }
+                        ok_resp_index(index_name, n)
+                    },
+                )
         }
         None => {
             cache.insert(index_name.clone(), GuardedIndex::empty());
