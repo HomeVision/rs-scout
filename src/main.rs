@@ -1,6 +1,7 @@
 mod sent_transform;
 mod vector_index;
 
+use actix_cors::Cors;
 use actix_web::{
     delete, get, middleware::Logger, post, put, web, App, HttpResponse, HttpResponseBuilder,
     HttpServer, Responder, Result,
@@ -213,6 +214,12 @@ async fn main() -> std::io::Result<()> {
         .unwrap_or(DEFAULT_PORT);
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            // .allowed_origin("http://localhost:3000")
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header();
+
         App::new()
             .app_data(state.clone())
             .service(root)
@@ -222,6 +229,7 @@ async fn main() -> std::io::Result<()> {
             .service(index_delete)
             .service(query_index)
             .wrap(Logger::default())
+            .wrap(cors)
     })
     .bind((address, port))?
     .run()
