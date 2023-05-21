@@ -2,9 +2,10 @@ mod sent_transform;
 mod vector_index;
 
 use actix_web::{
-    delete, get, post, put, web, App, HttpResponse, HttpResponseBuilder, HttpServer, Responder,
-    Result,
+    delete, get, middleware::Logger, post, put, web, App, HttpResponse, HttpResponseBuilder,
+    HttpServer, Responder, Result,
 };
+use env_logger;
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
 };
@@ -193,6 +194,8 @@ const DEFAULT_PORT: u16 = 8000;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     let model_path = env::var("MODEL_PATH").unwrap_or(String::from(DEFAULT_MODEL_PATH));
     let model = match load_model(&model_path) {
         Ok(m) => m,
@@ -218,6 +221,7 @@ async fn main() -> std::io::Result<()> {
             .service(index_update)
             .service(index_delete)
             .service(query_index)
+            .wrap(Logger::default())
     })
     .bind((address, port))?
     .run()
