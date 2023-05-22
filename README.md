@@ -4,7 +4,7 @@
 
 Scout is a lightweight, developer-friendly service that computes, stores, and indexes sentence embeddings, serving them through a RESTful interface. Its embedding model supports [50+ languages](https://www.sbert.net/docs/pretrained_models.html#multi-lingual-models).
 
-Scout can be used to power semantic search, as a pre-filtering step to reduce prompt sizes for GPT, topic clustering, recommendation systems, or other natural langugage processing (NLP) tasks.
+Scout can be used to power semantic search or as a pre-filtering step to reduce prompt sizes for GPT and other costly LLM inputs. Scout can also be used for topic clustering, recommendation systems, or a variety of other natural language processing (NLP) tasks.
 
 Scout employs [`distiluse-base-multilingual-cased-v2`](https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2), a 512-dimensional multilingual sentence embedding model. Remarkably, inputs in _different_ languages are mapped close in vector space, allowing for applications across languages. The 53 supported languages are: `ar, bg, ca, cs, da, de, el, en, es, et, fa, fi, fr, fr-ca, gl, gu, he, hi, hr, hu, hy, id, it, ja, ka, ko, ku, lt, lv, mk, mn, mr, ms, my, nb, nl, pl, pt, pt-br, ro, ru, sk, sl, sq, sr, sv, th, tr, uk, ur, vi, zh-cn, zh-tw`. This model is based upon [Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks](https://arxiv.org/abs/1908.10084).
 
@@ -15,7 +15,7 @@ Scout employs [`distiluse-base-multilingual-cased-v2`](https://huggingface.co/se
 <details>
     <summary>
         <code><b>POST</b> /index/{index_name}</code>
-        <p><em>Creates an index named <code>index_name</code></em></p>
+        <p>Creates an index named <code>index_name</code></p>
     </summary>
 
 ### Parameters
@@ -42,7 +42,7 @@ curl -d '[{"id": "hamlet", "text": "To be, or not to be: that is the question."}
 <details>
     <summary>
         <code><b>GET</b> /index/{index_name}</code>
-        <p><em>Reads an index named <code>index_name</code></em></p>
+        <p>Reads an index named <code>index_name</code></p>
     </summary>
 
 ### Parameters
@@ -68,7 +68,7 @@ curl https://goscout.online/index/shakespeare
 <details>
     <summary>
         <code><b>PUT</b> /index/{index_name}</code>
-        <p><em>Updates an index named <code>index_name</code></em></p>
+        <p>Updates an index named <code>index_name</code></p>
     </summary>
 
 ### Parameters
@@ -95,7 +95,7 @@ curl -X PUT -d '[{"id": "henry_v", "text": "Once more unto the breach, dear frie
 <details>
     <summary>
         <code><b>DELETE</b> /index/{index_name}</code>
-        <p><em>Deletes an index named <code>index_name</code></em></p>
+        <p>Deletes an index named <code>index_name</code></p>
     </summary>
 
 ### Parameters
@@ -119,7 +119,7 @@ curl -X DELETE https://goscout.online/index/shakespeare
 <details>
     <summary>
         <code><b>GET</b> /index/{index_name}/query?q={query}&n={num results}</code>
-        <p><em>Queries an index named <code>index_name</code></em></p>
+        <p>Queries an index named <code>index_name</code></p>
     </summary>
 
 ### Parameters
@@ -217,4 +217,4 @@ curl https://goscout.online/index/shakespeare/query?q=romans&n=2
 
 ## Questions, Comments, or Feedback Welcome
 
-Please reach out to `vince@homevision.co` or [@vincentchu](https://twitter.com/vincentchu).
+Please find me on twitter at [@vincentchu](https://twitter.com/vincentchu).

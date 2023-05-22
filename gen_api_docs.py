@@ -47,7 +47,7 @@ def gen_endpoint(doc):
 <details>
     <summary>
         <code><b>{doc["method"]}</b> {doc["path"]}</code>
-        <p><em>{doc["description"]}</em></p>
+        <p>{doc["description"]}</p>
     </summary>
 
 ### Parameters
