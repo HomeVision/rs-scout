@@ -6,7 +6,6 @@ use actix_web::{
     delete, get, middleware::Logger, post, put, web, App, HttpResponse, HttpResponseBuilder,
     HttpServer, Responder, Result,
 };
-use env_logger;
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
 };
@@ -61,7 +60,7 @@ struct RespError {
 
 fn compute_text_bodies_embeddings(
     model: &SentenceTransformer,
-    text_bodies: &Vec<TextBody>,
+    text_bodies: &[TextBody],
 ) -> Result<Vec<Vec<f32>>, String> {
     let text_strs: Vec<String> = text_bodies.iter().map(|tb| tb.text.clone()).collect();
     let text_strs: Vec<&str> = text_strs.iter().map(|s| s.as_str()).collect();
