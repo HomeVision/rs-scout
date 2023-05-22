@@ -1,0 +1,128 @@
+{
+  "schema": [
+    {
+      "name": "TextBody",
+      "description": "Represents a sentence to be embedded. The <code>id</code> attribute is an arbitrary string, meaningful only to the client. The <code>text</code> attribute can be a sentence or paragraph to be embedded.",
+      "json": "{\n  \"id\": \"hamlet\",\n  \"text\": \"To be, or not to be: that is the question.\"\n}"
+    },
+    {
+      "name": "SearchResult",
+      "description": "Represents a result from a query. In addition to the fields from <code>TextBody</code>, the <code>score</code> attribute is a float that represents how well matched the query is to the result.",
+      "json": "{\n  \"id\": \"hamlet\",\n  \"text\": \"To be, or not to be: that is the question.\"\n  \"score\": 0.87\n}"
+    },
+    {
+      "name": "ErrorResponse",
+      "description": "Returned by the API when encountering an error. The <code>error</code> attribute is a message with more information about an error. The status code associated with this response will always be non-200.",
+      "json": "{\n  \"ok\": false,\n  \"error\": \"An error has occurred\"\n}"
+    },
+    {
+      "name": "IndexResponse",
+      "description": "Returned by CRUD action on an index. The <code>index</code> attribute is the name of the index and the <code>size</code> attribute is the size of the index at the time of the action.",
+      "json": "{\n  \"index\": \"shakespeare\",\n  \"size\": 1431\n}"
+    }
+  ],
+
+  "endpoints": [
+    {
+      "description": "Creates an index named <code>index_name</code>",
+      "method": "POST",
+      "path": "/index/{index_name}",
+      "example": "curl -d '[{\"id\": \"hamlet\", \"text\": \"To be, or not to be: that is the question.\"}, {\"id\": \"julius_caesar\", \"text\": \"Friends, Romans, countrymen, lend me your ears.\"}]' https://goscout.online/index/shakespeare",
+      "parameters": [
+        {
+          "Name": "`index_name`",
+          "Description": "Name of the index to create"
+        },
+        {
+          "Name": "body",
+          "Description": "Optional `POST` body containing an array of `TextBody` objects to index. If missing, an empty index will be created."
+        }
+      ],
+      "responses": [
+        {
+          "HTTP Code": "`200`",
+          "Response": "Returns `IndexResponse`"
+        }
+      ]
+    },
+    {
+      "description": "Reads an index named <code>index_name</code>",
+      "method": "GET",
+      "path": "/index/{index_name}",
+      "example": "curl https://goscout.online/index/shakespeare",
+      "parameters": [
+        {
+          "Name": "`index_name`",
+          "Description": "Name of the index to read"
+        }
+      ],
+      "responses": [
+        {
+          "HTTP Code": "`200`",
+          "Response": "Returns `IndexResponse`"
+        }
+      ]
+    },
+    {
+      "description": "Updates an index named <code>index_name</code>",
+      "method": "PUT",
+      "path": "/index/{index_name}",
+      "example": "curl -X PUT -d '[{\"id\": \"henry_v\", \"text\": \"Once more unto the breach, dear friends, once more.\"}]' https://goscout.online/index/shakespeare",
+      "parameters": [
+        {
+          "Name": "`index_name`",
+          "Description": "Name of the index to read"
+        },
+        {
+          "Name": "body",
+          "Description": "Required `PUT` body containing an array of `TextBody` objects to index. These text bodies will be appended to the index."
+        }
+      ],
+      "responses": [
+        {
+          "HTTP Code": "`200`",
+          "Response": "Returns `IndexResponse`"
+        }
+      ]
+    },
+    {
+      "description": "Deletes an index named <code>index_name</code>",
+      "method": "DELETE",
+      "path": "/index/{index_name}",
+      "example": "curl -X DELETE https://goscout.online/index/shakespeare",
+      "parameters": [],
+      "responses": [
+        {
+          "HTTP Code": "`200`",
+          "Response": "Returns `IndexResponse`"
+        }
+      ]
+    },
+    {
+      "description": "Queries an index named <code>index_name</code>",
+      "method": "GET",
+      "path": "/index/{index_name}/query?q={query}&n={num results}",
+      "example": "curl https://goscout.online/index/shakespeare/query?q=romans&n=2",
+      "parameters": [
+        {
+          "Name": "`index_name`",
+          "Description": "Name of the index to read"
+        },
+        {
+          "Name": "`q`",
+          "Description": "Required query parameter of text to query against `index_name`"
+        },
+        {
+          "Name": "`n`",
+          "Description": "Optional query param to set number of results (default: 3)"
+        }
+      ],
+      "responses": [
+        {
+          "HTTP Code": "`200`",
+          "Response": "Returns an array of `SearchResult`"
+        }
+      ]
+    }
+  ]
+}

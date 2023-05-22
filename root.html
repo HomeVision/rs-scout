@@ -1,5 +1,483 @@
-<html>
-  <body>
-    <h1>Scout, <em>at your service</em></h1>
-  </body>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>281621</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="scout">Scout</h1>
+<hr />
+<p>Scout is a lightweight, developer-friendly service that computes, stores, and indexes sentence embeddings, serving them through a RESTful interface. Its embedding model supports <a href="https://www.sbert.net/docs/pretrained_models.html#multi-lingual-models">50+ languages</a>.</p>
+<p>Scout can be used to power semantic search, as a pre-filtering step to reduce prompt sizes for GPT, topic clustering, recommendation systems, or other natural langugage processing (NLP) tasks.</p>
+<p>Scout employs <a href="https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2"><code>distiluse-base-multilingual-cased-v2</code></a>, a 512-dimensional multilingual sentence embedding model. Remarkably, inputs in <em>different</em> languages are mapped close in vector space, allowing for applications across languages. The 53 supported languages are: <code>ar, bg, ca, cs, da, de, el, en, es, et, fa, fi, fr, fr-ca, gl, gu, he, hi, hr, hu, hy, id, it, ja, ka, ko, ku, lt, lv, mk, mn, mr, ms, my, nb, nl, pl, pt, pt-br, ro, ru, sk, sl, sq, sr, sv, th, tr, uk, ur, vi, zh-cn, zh-tw</code>. This model is based upon <a href="https://arxiv.org/abs/1908.10084">Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks</a>.</p>
+<p><b>Note:</b> This server is itself a running instance of scout, so feel free to make and create indices and try it out. Just be aware that this server may be restarted at any time, wiping out any data. <code>¯\_(ツ)_/¯</code></p>
+<h2 id="api-documentation">API Documentation</h2>
+<details>
+    <summary>
+        <code><b>POST</b> /index/{index_name}</code>
+        <p><em>Creates an index named <code>index_name</code></em></p>
+    </summary>
+
+<h3 id="parameters">Parameters</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>index_name</code></td>
+<td>Name of the index to create</td>
+</tr>
+<tr class="even">
+<td>body</td>
+<td>Optional <code>POST</code> body containing an array of <code>TextBody</code> objects to index. If missing, an empty index will be created.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="responses">Responses</h3>
+<table>
+<thead>
+<tr class="header">
+<th>HTTP Code</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>200</code></td>
+<td>Returns <code>IndexResponse</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="example">Example</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-d</span> <span class="st">&#39;[{&quot;id&quot;: &quot;hamlet&quot;, &quot;text&quot;: &quot;To be, or not to be: that is the question.&quot;}, {&quot;id&quot;: &quot;julius_caesar&quot;, &quot;text&quot;: &quot;Friends, Romans, countrymen, lend me your ears.&quot;}]&#39;</span> https://goscout.online/index/shakespeare</span></code></pre></div>
+</details>
+
+<details>
+    <summary>
+        <code><b>GET</b> /index/{index_name}</code>
+        <p><em>Reads an index named <code>index_name</code></em></p>
+    </summary>
+
+<h3 id="parameters-1">Parameters</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>index_name</code></td>
+<td>Name of the index to read</td>
+</tr>
+</tbody>
+</table>
+<h3 id="responses-1">Responses</h3>
+<table>
+<thead>
+<tr class="header">
+<th>HTTP Code</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>200</code></td>
+<td>Returns <code>IndexResponse</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-1">Example</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://goscout.online/index/shakespeare</span></code></pre></div>
+</details>
+
+<details>
+    <summary>
+        <code><b>PUT</b> /index/{index_name}</code>
+        <p><em>Updates an index named <code>index_name</code></em></p>
+    </summary>
+
+<h3 id="parameters-2">Parameters</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>index_name</code></td>
+<td>Name of the index to read</td>
+</tr>
+<tr class="even">
+<td>body</td>
+<td>Required <code>PUT</code> body containing an array of <code>TextBody</code> objects to index. These text bodies will be appended to the index.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="responses-2">Responses</h3>
+<table>
+<thead>
+<tr class="header">
+<th>HTTP Code</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>200</code></td>
+<td>Returns <code>IndexResponse</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-2">Example</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> PUT <span class="at">-d</span> <span class="st">&#39;[{&quot;id&quot;: &quot;henry_v&quot;, &quot;text&quot;: &quot;Once more unto the breach, dear friends, once more.&quot;}]&#39;</span> https://goscout.online/index/shakespeare</span></code></pre></div>
+</details>
+
+<details>
+    <summary>
+        <code><b>DELETE</b> /index/{index_name}</code>
+        <p><em>Deletes an index named <code>index_name</code></em></p>
+    </summary>
+
+<h3 id="parameters-3">Parameters</h3>
+<p>None</p>
+<h3 id="responses-3">Responses</h3>
+<table>
+<thead>
+<tr class="header">
+<th>HTTP Code</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>200</code></td>
+<td>Returns <code>IndexResponse</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-3">Example</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> DELETE https://goscout.online/index/shakespeare</span></code></pre></div>
+</details>
+
+<details>
+    <summary>
+        <code><b>GET</b> /index/{index_name}/query?q={query}&n={num results}</code>
+        <p><em>Queries an index named <code>index_name</code></em></p>
+    </summary>
+
+<h3 id="parameters-4">Parameters</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>index_name</code></td>
+<td>Name of the index to read</td>
+</tr>
+<tr class="even">
+<td><code>q</code></td>
+<td>Required query parameter of text to query against <code>index_name</code></td>
+</tr>
+<tr class="odd">
+<td><code>n</code></td>
+<td>Optional query param to set number of results (default: 3)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="responses-4">Responses</h3>
+<table>
+<thead>
+<tr class="header">
+<th>HTTP Code</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>200</code></td>
+<td>Returns an array of <code>SearchResult</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-4">Example</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://goscout.online/index/shakespeare/query<span class="pp">?</span>q=romans<span class="kw">&amp;</span><span class="va">n</span><span class="op">=</span>2</span></code></pre></div>
+</details>
+
+<h3 id="api-schema">API Schema</h3>
+<details>
+    <summary>
+        <code>TextBody</code>
+        <p>Represents a sentence to be embedded. The <code>id</code> attribute is an arbitrary string, meaningful only to the client. The <code>text</code> attribute can be a sentence or paragraph to be embedded.</p>
+    </summary>
+
+<h5 id="example-5">Example</h5>
+<div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;To be, or not to be: that is the question.&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+</details>
+
+<details>
+    <summary>
+        <code>SearchResult</code>
+        <p>Represents a result from a query. In addition to the fields from <code>TextBody</code>, the <code>score</code> attribute is a float that represents how well matched the query is to the result.</p>
+    </summary>
+
+<h5 id="example-6">Example</h5>
+<div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;hamlet&quot;</span><span class="fu">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;text&quot;</span><span class="fu">:</span> <span class="st">&quot;To be, or not to be: that is the question.&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;score&quot;</span><span class="er">:</span> <span class="fl">0.87</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+</details>
+
+<details>
+    <summary>
+        <code>ErrorResponse</code>
+        <p>Returned by the API when encountering an error. The <code>error</code> attribute is a message with more information about an error. The status code associated with this response will always be non-200.</p>
+    </summary>
+
+<h5 id="example-7">Example</h5>
+<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ok&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="st">&quot;An error has occurred&quot;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+</details>
+
+<details>
+    <summary>
+        <code>IndexResponse</code>
+        <p>Returned by CRUD action on an index. The <code>index</code> attribute is the name of the index and the <code>size</code> attribute is the size of the index at the time of the action.</p>
+    </summary>
+
+<h5 id="example-8">Example</h5>
+<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;index&quot;</span><span class="fu">:</span> <span class="st">&quot;shakespeare&quot;</span><span class="fu">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;size&quot;</span><span class="fu">:</span> <span class="dv">1431</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+</details>
+
+<h2 id="questions-comments-or-feedback-welcome">Questions, Comments, or Feedback Welcome</h2>
+<p>Please reach out to <code>vince@homevision.co</code> or <a href="https://twitter.com/vincentchu">@vincentchu</a>.</p>
+</body>
 </html>
