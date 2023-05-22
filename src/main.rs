@@ -2,6 +2,7 @@ mod sent_transform;
 mod vector_index;
 
 use actix_cors::Cors;
+use actix_files::NamedFile;
 use actix_web::{
     delete, get, middleware::Logger, post, put, web, App, HttpResponse, HttpResponseBuilder,
     HttpServer, Responder, Result,
@@ -13,7 +14,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
 use std::sync::{Arc, Mutex, RwLock};
-use std::time::SystemTime;
 use vector_index::{GuardedIndex, TextBody};
 
 #[derive(Deserialize)]
@@ -172,16 +172,8 @@ async fn index_delete(
 }
 
 #[get("/")]
-async fn root() -> impl Responder {
-    HttpResponse::Ok().body(format!(
-        "<html>
-            <body>
-                <h1>Scout, <em>at your service</em></h1>
-                <p>{:?}</p>
-            </body>
-        </html>",
-        SystemTime::now()
-    ))
+async fn root() -> Result<NamedFile> {
+    Ok(NamedFile::open("root.html")?)
 }
 struct ServerState {
     model: Mutex<SentenceTransformer>,
