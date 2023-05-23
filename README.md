@@ -8,7 +8,7 @@ Scout can be used to power semantic search or as a pre-filtering step to reduce 
 
 Scout employs [`distiluse-base-multilingual-cased-v2`](https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2), a 512-dimensional multilingual sentence embedding model. Remarkably, inputs in _different_ languages are mapped close in vector space, allowing for applications across languages. The 53 supported languages are: ar, bg, ca, cs, da, de, el, en, es, et, fa, fi, fr, fr-ca, gl, gu, he, hi, hr, hu, hy, id, it, ja, ka, ko, ku, lt, lv, mk, mn, mr, ms, my, nb, nl, pl, pt, pt-br, ro, ru, sk, sl, sq, sr, sv, th, tr, uk, ur, vi, zh-cn, zh-tw. This model is based upon [Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks](https://arxiv.org/abs/1908.10084).
 
-Scout is used internally within [HomeVision](https://homevision.co) as a backend to a number of internal pipelines. HomeVision pipelines collectively process millions of pages of appraisal text monthly using NLP, computer vision, and machine learning.
+Scout is used at [HomeVision](https://homevision.co) as a backend to a number of internal tools and pipelines. HomeVision pipelines collectively process millions of pages of appraisal text monthly using NLP, computer vision, and machine learning.
 
 <b>Note:</b> This server is itself a running instance of scout, so feel free to make and create indices and try it out. Just be aware that this server may be restarted at any time, wiping out any data. `¯\_(ツ)_/¯`
 
@@ -216,6 +216,17 @@ curl https://goscout.online/index/shakespeare/query?q=romans&n=2
 ```
 
 </details>
+
+## Source Code, Technical Notes, Installation
+
+The source code for `scout` can be found at [https://github.com/homevision/rs-scout](https://github.com/homevision/rs-scout). Scout is written in Rust (built using `v1.69.0`) and targets `x86_64` architectures. Note: you must be able to build PyTorch's C++ bindings as this is a required dependency. For the time being, `rs-scout` does _not_ comiple on Apple Silicon.
+
+### Installation/Execution
+
+1. Download repository: `git clone git@github.com:HomeVision/rs-scout.git && cd rs-scout`
+2. Download and convert model weights using [`rust-sbert`](https://github.com/cpcdoy/rust-sbert#convert-models-from-python-to-rust) to `./models`
+3. Start server: `cargo run`
+4. Test server: `curl http://localhost:8000`
 
 ## Questions, Comments, or Feedback Welcome
 

@@ -406,11 +406,10 @@
       >.
     </p>
     <p>
-      Scout is used internally within
-      <a href="https://homevision.co">HomeVision</a> as a backend to a number of
-      internal pipelines. HomeVision pipelines collectively process millions of
-      pages of appraisal text monthly using NLP, computer vision, and machine
-      learning.
+      Scout is used at <a href="https://homevision.co">HomeVision</a> as a
+      backend to a number of internal tools and pipelines. HomeVision pipelines
+      collectively process millions of pages of appraisal text monthly using
+      NLP, computer vision, and machine learning.
     </p>
     <p>
       <b>Note:</b> This server is itself a running instance of scout, so feel
@@ -743,6 +742,40 @@
       </div>
     </details>
 
+    <h2 id="source-code-technical-notes-installation">
+      Source Code, Technical Notes, Installation
+    </h2>
+    <p>
+      The source code for <code>scout</code> can be found at
+      <a href="https://github.com/homevision/rs-scout"
+        ><a href="https://github.com/homevision/rs-scout"
+          >https://github.com/homevision/rs-scout</a
+        ></a
+      >. Scout is written in Rust (built using <code>v1.69.0</code>) and targets
+      <code>x86_64</code> architectures. Note: you must be able to build
+      PyTorch's C++ bindings as this is a required dependency. For the time
+      being, <code>rs-scout</code> does <em>not</em> comiple on Apple Silicon.
+    </p>
+    <h3 id="installationexecution">Installation/Execution</h3>
+    <ol type="1">
+      <li>
+        Download repository:
+        <code
+          >git clone git@github.com:HomeVision/rs-scout.git &amp;&amp; cd
+          rs-scout</code
+        >
+      </li>
+      <li>
+        Download and convert model weights using
+        <a
+          href="https://github.com/cpcdoy/rust-sbert#convert-models-from-python-to-rust"
+          ><code>rust-sbert</code></a
+        >
+        to <code>./models</code>
+      </li>
+      <li>Start server: <code>cargo run</code></li>
+      <li>Test server: <code>curl http://localhost:8000</code></li>
+    </ol>
     <h2 id="questions-comments-or-feedback-welcome">
       Questions, Comments, or Feedback Welcome
     </h2>
