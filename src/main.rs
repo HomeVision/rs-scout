@@ -19,7 +19,10 @@ use vector_index::{GuardedIndex, TextBody};
 #[derive(Deserialize)]
 struct QueryParams {
     q: String,
+    n: Option<String>,
 }
+
+const DEFAULT_NRESULTS: &str = "3";
 
 #[get("/index/{index_name}/query")]
 async fn query_index(
@@ -27,6 +30,17 @@ async fn query_index(
     params: web::Query<QueryParams>,
     state: web::Data<ServerState>,
 ) -> HttpResponse {
+    let nstr = params.n.clone().unwrap_or(DEFAULT_NRESULTS.to_string());
+    let n: usize = match nstr.parse::<usize>() {
+        Ok(_n) => _n,
+        Err(err) => {
+            return resp_error(
+                HttpResponse::BadRequest(),
+                format!("Could not convert n query param: {err}"),
+            )
+        }
+    };
+
     let index_name = index_name.to_string();
     let cache = state.cache.read().unwrap();
     let model = state.model.lock().unwrap();
@@ -34,7 +48,7 @@ async fn query_index(
     match cache.get(&index_name) {
         Some(index) => compute_normalized_embedding(&model, &params.q)
             .map_err(|err| format!("Error computing embedding: {err}"))
-            .and_then(|query_embedding| index.search_knn(&query_embedding, 3))
+            .and_then(|query_embedding| index.search_knn(&query_embedding, n))
             .map_or_else(
                 |error| resp_error(HttpResponse::InternalServerError(), error),
                 |results| HttpResponse::Ok().json(results),
