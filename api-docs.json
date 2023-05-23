@@ -27,7 +27,7 @@
       "description": "Creates an index named <code>index_name</code>",
       "method": "POST",
       "path": "/index/{index_name}",
-      "example": "curl -d '[{\"id\": \"hamlet\", \"text\": \"To be, or not to be: that is the question.\"}, {\"id\": \"julius_caesar\", \"text\": \"Friends, Romans, countrymen, lend me your ears.\"}]' https://goscout.online/index/shakespeare",
+      "example": "curl -H \"Content-Type: application/json\" -d '[{\"id\": \"hamlet\", \"text\": \"To be, or not to be: that is the question.\"}, {\"id\": \"julius_caesar\", \"text\": \"Friends, Romans, countrymen, lend me your ears.\"}]' https://goscout.online/index/shakespeare",
       "parameters": [
         {
           "Name": "`index_name`",
@@ -67,7 +67,7 @@
       "description": "Updates an index named <code>index_name</code>",
       "method": "PUT",
       "path": "/index/{index_name}",
-      "example": "curl -X PUT -d '[{\"id\": \"henry_v\", \"text\": \"Once more unto the breach, dear friends, once more.\"}]' https://goscout.online/index/shakespeare",
+      "example": "curl -H \"Content-Type: application/json\" -X PUT -d '[{\"id\": \"henry_v\", \"text\": \"Once more unto the breach, dear friends, once more.\"}]' https://goscout.online/index/shakespeare",
       "parameters": [
         {
           "Name": "`index_name`",

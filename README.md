@@ -36,7 +36,7 @@ Scout is used at [HomeVision](https://homevision.co) as a backend to a number of
 ### Example
 
 ```bash
-curl -d '[{"id": "hamlet", "text": "To be, or not to be: that is the question."}, {"id": "julius_caesar", "text": "Friends, Romans, countrymen, lend me your ears."}]' https://goscout.online/index/shakespeare
+curl -H "Content-Type: application/json" -d '[{"id": "hamlet", "text": "To be, or not to be: that is the question."}, {"id": "julius_caesar", "text": "Friends, Romans, countrymen, lend me your ears."}]' https://goscout.online/index/shakespeare
 ```
 
 </details>
@@ -89,7 +89,7 @@ curl https://goscout.online/index/shakespeare
 ### Example
 
 ```bash
-curl -X PUT -d '[{"id": "henry_v", "text": "Once more unto the breach, dear friends, once more."}]' https://goscout.online/index/shakespeare
+curl -H "Content-Type: application/json" -X PUT -d '[{"id": "henry_v", "text": "Once more unto the breach, dear friends, once more."}]' https://goscout.online/index/shakespeare
 ```
 
 </details>
