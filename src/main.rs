@@ -3,9 +3,10 @@ mod vector_index;
 
 use actix_cors::Cors;
 use actix_files::NamedFile;
+use actix_web::middleware::{Compress, Logger};
 use actix_web::{
-    delete, get, middleware::Logger, post, put, web, App, HttpResponse, HttpResponseBuilder,
-    HttpServer, Responder, Result,
+    delete, get, post, put, web, App, HttpResponse, HttpResponseBuilder, HttpServer, Responder,
+    Result,
 };
 use sent_transform::{
     compute_normalized_embedding, compute_normalized_embeddings, load_model, SentenceTransformer,
@@ -235,6 +236,7 @@ async fn main() -> std::io::Result<()> {
             .service(query_index)
             .wrap(Logger::default())
             .wrap(cors)
+            .wrap(Compress::default())
     })
     .bind((address, port))?
     .run()
