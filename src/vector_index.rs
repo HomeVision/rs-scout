@@ -1,6 +1,7 @@
 use crate::sent_transform;
 use sbert::{self, Embeddings};
 use serde::{Deserialize, Serialize};
+use std::cmp::{Eq, PartialEq};
 use std::sync;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -15,6 +16,14 @@ pub struct SearchResult {
     pub text: String,
     pub score: f32,
 }
+
+impl PartialEq for SearchResult {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.text == other.text && self.score == other.score
+    }
+}
+
+impl Eq for SearchResult {}
 
 struct Index {
     pub texts: Vec<TextBody>,
