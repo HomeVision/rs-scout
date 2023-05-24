@@ -1,7 +1,7 @@
 use crate::sent_transform;
 use sbert::{self, Embeddings};
 use serde::{Deserialize, Serialize};
-use std::cmp::{Eq, PartialEq};
+use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::sync;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -10,7 +10,7 @@ pub struct TextBody {
     pub text: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialOrd)]
 pub struct SearchResult {
     pub id: String,
     pub text: String,
@@ -24,6 +24,18 @@ impl PartialEq for SearchResult {
 }
 
 impl Eq for SearchResult {}
+
+impl Ord for SearchResult {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.score < other.score {
+            Ordering::Less
+        } else if self.score == other.score {
+            Ordering::Equal
+        } else {
+            Ordering::Greater
+        }
+    }
+}
 
 struct Index {
     pub texts: Vec<TextBody>,
@@ -121,7 +133,7 @@ impl GuardedIndex {
             .map_err(|_| String::from("search_knn: Failed to acquire lock"))
             .and_then(|idx| {
                 sent_transform::search_knn(query, &idx.embeddings, results).map(|raw_results| {
-                    raw_results
+                    let x = raw_results
                         .iter()
                         .map(|raw_result| {
                             let text_body = &idx.texts[raw_result.index];
@@ -132,7 +144,11 @@ impl GuardedIndex {
                                 score: raw_result.score,
                             }
                         })
-                        .collect()
+                        .collect();
+
+                    x.sort();
+
+                    x
                 })
             })
     }
