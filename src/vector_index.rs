@@ -133,7 +133,7 @@ impl GuardedIndex {
             .map_err(|_| String::from("search_knn: Failed to acquire lock"))
             .and_then(|idx| {
                 sent_transform::search_knn(query, &idx.embeddings, results).map(|raw_results| {
-                    let x = raw_results
+                    let mut results: Vec<SearchResult> = raw_results
                         .iter()
                         .map(|raw_result| {
                             let text_body = &idx.texts[raw_result.index];
@@ -146,9 +146,9 @@ impl GuardedIndex {
                         })
                         .collect();
 
-                    x.sort();
+                    results.sort_by(|x, y| y.cmp(&x)); // Sort Vector in descending order
 
-                    x
+                    results
                 })
             })
     }
