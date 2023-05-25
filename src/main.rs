@@ -49,7 +49,7 @@ async fn query_index(
     match cache.get(&index_name) {
         Some(index) => compute_normalized_embedding(&model, &params.q)
             .map_err(|err| format!("Error computing embedding: {err}"))
-            .and_then(|query_embedding| index.search_knn(&query_embedding, n))
+            .and_then(|query_embedding| index.search_exemplar_svm(&query_embedding, n))
             .map_or_else(
                 |error| resp_error(HttpResponse::InternalServerError(), error),
                 |results| HttpResponse::Ok().json(results),
