@@ -124,13 +124,17 @@ fn test_me() {
     println!("TEST ME!");
 
     let x: Vec<Vec<(u32, f64)>> = vec![
-        vec![(1, 0.1), (3, 0.2)],
-        vec![(3, 9.9)],
-        vec![(1, 0.2), (2, 3.2)],
+        vec![(1, 0.0), (2, 0.0)],
+        vec![(1, 0.0), (2, 1.0)],
+        vec![(1, 0.0), (2, 2.0)],
+        vec![(1, 1.0), (2, 0.0)],
+        vec![(1, 1.0), (2, 1.0)],
+        vec![(1, 1.0), (2, 2.0)],
     ];
-    let y = vec![0.0, 1.0, 0.0];
+    let y = vec![0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
 
     let mut model_builder = liblinear::Builder::new();
+
     model_builder
         .problem()
         .input_data(util::TrainingInput::from_sparse_features(y, x).unwrap())
@@ -138,27 +142,23 @@ fn test_me() {
 
     model_builder
         .parameters()
-        .solver_type(SolverType::L2R_LR)
-        .stopping_criterion(0.1f64)
-        .constraints_violation_cost(0.1f64)
-        .regression_loss_sensitivity(1f64);
+        .solver_type(SolverType::L2R_L2LOSS_SVC_DUAL)
+        .stopping_criterion(0.1)
+        .constraints_violation_cost(0.1);
 
     let model = model_builder.build_model().unwrap();
     assert_eq!(model.num_classes(), 2);
 
     println!("PREDICTING");
-    let predicted_class = model
-        .predict(
-            util::PredictionInput::from_sparse_features(vec![
-                (1u32, 2.2f64),
-                (2u32, 0.0f64),
-                (3u32, 0.0f64),
-            ])
-            .unwrap(),
-        )
-        .unwrap();
 
-    println!("PRED = {}", predicted_class);
+    let features =
+        util::PredictionInput::from_sparse_features(vec![(1u32, 0.0f64), (2u32, 0.0f64)]).unwrap();
+
+    // let predicted_class = model.predict(features).unwrap();
+
+    let foo = model.predict_values(features).unwrap();
+
+    println!("PRED = {:?}", foo);
 }
 
 #[cfg(test)]
