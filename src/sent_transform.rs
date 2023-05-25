@@ -1,3 +1,4 @@
+use liblinear::*;
 use std::collections::BinaryHeap;
 
 pub type SentenceTransformer = sbert::SBert<sbert::HFTokenizer>;
@@ -119,6 +120,47 @@ fn l2_norm(v: &sbert::Embeddings) -> f32 {
         .sqrt()
 }
 
+fn test_me() {
+    println!("TEST ME!");
+
+    let x: Vec<Vec<(u32, f64)>> = vec![
+        vec![(1, 0.1), (3, 0.2)],
+        vec![(3, 9.9)],
+        vec![(1, 0.2), (2, 3.2)],
+    ];
+    let y = vec![0.0, 1.0, 0.0];
+
+    let mut model_builder = liblinear::Builder::new();
+    model_builder
+        .problem()
+        .input_data(util::TrainingInput::from_sparse_features(y, x).unwrap())
+        .bias(0f64);
+
+    model_builder
+        .parameters()
+        .solver_type(SolverType::L2R_LR)
+        .stopping_criterion(0.1f64)
+        .constraints_violation_cost(0.1f64)
+        .regression_loss_sensitivity(1f64);
+
+    let model = model_builder.build_model().unwrap();
+    assert_eq!(model.num_classes(), 2);
+
+    println!("PREDICTING");
+    let predicted_class = model
+        .predict(
+            util::PredictionInput::from_sparse_features(vec![
+                (1u32, 2.2f64),
+                (2u32, 0.0f64),
+                (3u32, 0.0f64),
+            ])
+            .unwrap(),
+        )
+        .unwrap();
+
+    println!("PRED = {}", predicted_class);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -209,5 +251,10 @@ mod tests {
             .collect();
 
         assert_eq!(result_indices, vec![0, 2]);
+    }
+
+    #[test]
+    fn test_test() {
+        test_me()
     }
 }
