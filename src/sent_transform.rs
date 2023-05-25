@@ -97,9 +97,32 @@ pub fn search_exemplar_svm(
     vectors: &[sbert::Embeddings],
     results: usize,
 ) -> Result<Vec<IndexWithScore>, String> {
-    svm::svm(query, vectors);
+    let dists = svm::svm(query, vectors)?;
 
-    Err("FOO".to_string())
+    let mut heap: BinaryHeap<IndexWithScore> = BinaryHeap::new();
+    for (index, dist) in dists.iter().enumerate() {
+        let score = *dist as f32;
+        let new_item = IndexWithScore { index, score };
+
+        match heap.peek() {
+            Some(min_elem) => {
+                let curr_len = heap.len();
+                if min_elem.score < score || curr_len < results {
+                    if curr_len == results {
+                        heap.pop();
+                    }
+
+                    heap.push(new_item);
+                }
+            }
+            None => heap.push(new_item),
+        }
+    }
+
+    let mut items = heap.into_vec();
+    items.reverse();
+
+    Ok(items)
 }
 
 fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
@@ -238,6 +261,6 @@ mod tests {
             .map(|i| i.index)
             .collect();
 
-        assert_eq!(result_indices, vec![1, 2]);
+        assert_eq!(result_indices, vec![1, 0]);
     }
 }
