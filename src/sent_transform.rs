@@ -1,4 +1,5 @@
-use liblinear::*;
+mod svm;
+
 use std::collections::BinaryHeap;
 
 pub type SentenceTransformer = sbert::SBert<sbert::HFTokenizer>;
@@ -91,6 +92,16 @@ pub fn search_knn(
     Ok(items)
 }
 
+pub fn search_exemplar_svm(
+    query: &sbert::Embeddings,
+    vectors: &[sbert::Embeddings],
+    results: usize,
+) -> Result<Vec<IndexWithScore>, String> {
+    svm::svm(query, vectors);
+
+    Err("FOO".to_string())
+}
+
 fn dot(a: &sbert::Embeddings, b: &sbert::Embeddings) -> Result<f32, String> {
     if a.len() != b.len() {
         return Err(format!(
@@ -118,47 +129,6 @@ fn l2_norm(v: &sbert::Embeddings) -> f32 {
     dot(v, v)
         .expect("l2_norm: Encountered unexpected panic")
         .sqrt()
-}
-
-fn test_me() {
-    println!("TEST ME!");
-
-    let x: Vec<Vec<(u32, f64)>> = vec![
-        vec![(1, 0.0), (2, 0.0)],
-        vec![(1, 0.0), (2, 1.0)],
-        vec![(1, 0.0), (2, 2.0)],
-        vec![(1, 1.0), (2, 0.0)],
-        vec![(1, 1.0), (2, 1.0)],
-        vec![(1, 1.0), (2, 2.0)],
-    ];
-    let y = vec![0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
-
-    let mut model_builder = liblinear::Builder::new();
-
-    model_builder
-        .problem()
-        .input_data(util::TrainingInput::from_sparse_features(y, x).unwrap())
-        .bias(0f64);
-
-    model_builder
-        .parameters()
-        .solver_type(SolverType::L2R_L2LOSS_SVC_DUAL)
-        .stopping_criterion(0.1)
-        .constraints_violation_cost(0.1);
-
-    let model = model_builder.build_model().unwrap();
-    assert_eq!(model.num_classes(), 2);
-
-    println!("PREDICTING");
-
-    let features =
-        util::PredictionInput::from_sparse_features(vec![(1u32, 0.0f64), (2u32, 0.0f64)]).unwrap();
-
-    // let predicted_class = model.predict(features).unwrap();
-
-    let foo = model.predict_values(features).unwrap();
-
-    println!("PRED = {:?}", foo);
 }
 
 #[cfg(test)]
@@ -254,7 +224,20 @@ mod tests {
     }
 
     #[test]
-    fn test_test() {
-        test_me()
+    fn test_search_exemplar_svm() {
+        let q = l2_normalize(vec![1.0, 0.0]);
+        let vectors = vec![
+            vec![-1.0, 0.0],
+            vec![1.0, 0.0],
+            l2_normalize(vec![0.5, 0.5]),
+        ];
+
+        let result_indices: Vec<usize> = search_exemplar_svm(&q, &vectors, 2)
+            .expect("search_exemplar_svm: Unexpected failure")
+            .iter()
+            .map(|i| i.index)
+            .collect();
+
+        assert_eq!(result_indices, vec![1, 2]);
     }
 }
