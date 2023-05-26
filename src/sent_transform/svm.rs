@@ -1,20 +1,21 @@
 use liblinear::*;
 
-fn vec_to_features(vec: &Vec<f32>) -> Vec<(u32, f64)> {
+fn vec_to_features(vec: &[f32]) -> Vec<(u32, f64)> {
     vec.iter()
         .enumerate()
         .map(|(idx, val)| ((idx + 1) as u32, *val as f64))
         .collect()
 }
 
-pub fn svm(q: &Vec<f32>, vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
+pub fn svm(q: &[f32], vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
     let nvecs = vectors.len();
 
     let mut labels = vec![0.0; nvecs + 1];
     labels[0] = 1.0;
 
-    let mut all_embeddings: Vec<Vec<(u32, f64)>> = vectors.iter().map(vec_to_features).collect();
-    let features2 = all_embeddings.clone();
+    let mut all_embeddings: Vec<Vec<(u32, f64)>> =
+        vectors.iter().map(|vec| vec_to_features(vec)).collect();
+    let indexed_embeddings = all_embeddings.clone();
     all_embeddings.insert(0, vec_to_features(q));
 
     let mut model_builder = liblinear::Builder::new();
@@ -39,7 +40,7 @@ pub fn svm(q: &Vec<f32>, vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
         .build_model()
         .map_err(|err| format!("svm: Error creating model: {err}"))?;
 
-    features2
+    indexed_embeddings
         .iter()
         .enumerate()
         .map(|(idx, feature)| {
@@ -52,6 +53,5 @@ pub fn svm(q: &Vec<f32>, vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
                         .map(|(dists, _)| dists.first().map_or(-100.0, |f| *f))
                 })
         })
-        .into_iter()
         .collect()
 }

@@ -10,7 +10,7 @@ pub struct TextBody {
     pub text: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialOrd)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SearchResult {
     pub id: String,
     pub text: String,
@@ -25,15 +25,22 @@ impl PartialEq for SearchResult {
 
 impl Eq for SearchResult {}
 
+impl PartialOrd for SearchResult {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.score < other.score {
+            Some(Ordering::Less)
+        } else if self.score == other.score {
+            Some(Ordering::Equal)
+        } else {
+            Some(Ordering::Greater)
+        }
+    }
+}
+
 impl Ord for SearchResult {
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.score < other.score {
-            Ordering::Less
-        } else if self.score == other.score {
-            Ordering::Equal
-        } else {
-            Ordering::Greater
-        }
+        self.partial_cmp(other)
+            .expect("SearchResult: unexpected None for partial_cmp")
     }
 }
 
@@ -146,7 +153,7 @@ impl GuardedIndex {
                         })
                         .collect();
 
-                    results.sort_by(|x, y| y.cmp(&x)); // Sort Vector in descending order
+                    results.sort_by(|x, y| y.cmp(x)); // Sort Vector in descending order
 
                     results
                 })
@@ -177,7 +184,7 @@ impl GuardedIndex {
                             })
                             .collect();
 
-                        results.sort_by(|x, y| y.cmp(&x)); // Sort Vector in descending order
+                        results.sort_by(|x, y| y.cmp(x)); // Sort Vector in descending order
 
                         results
                     },
