@@ -22,16 +22,18 @@ pub fn svm(q: &Vec<f32>, vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
     model_builder
         .problem()
         .input_data(util::TrainingInput::from_sparse_features(labels, features).unwrap())
-        .bias(0f64);
+        .bias(1f64);
 
     model_builder
         .parameters()
-        // .solver_type(SolverType::L2R_L2LOSS_SVC_DUAL) // iter=7, -2.87500, nSV=3
+        .solver_type(SolverType::L2R_L2LOSS_SVC_DUAL) // iter=7, -2.87500, nSV=3
         // .solver_type(SolverType::L2R_L1LOSS_SVC_DUAL) // iter=2 -2.9500, nSV=3
         // .solver_type(SolverType::MCSVM_CS) // iter=2 -2.9000, nSV=6
-        .solver_type(SolverType::L2R_LR_DUAL) // iter=10 -0.206
+        // .solver_type(SolverType::L2R_LR_DUAL) // iter=10 -0.206
         .stopping_criterion(1e-6)
-        .constraints_violation_cost(0.1);
+        .constraints_violation_cost(0.1)
+        .cost_penalty_labels(vec![0, 1])
+        .cost_penalty_weights(vec![0.75, 1.5]);
 
     let model = model_builder
         .build_model()
