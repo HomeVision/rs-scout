@@ -1,3 +1,5 @@
+mod svm;
+
 use std::collections::BinaryHeap;
 
 pub type SentenceTransformer = sbert::SBert<sbert::HFTokenizer>;
@@ -67,6 +69,39 @@ pub fn search_knn(
             Err(err) => return Err(err),
         };
 
+        let new_item = IndexWithScore { index, score };
+
+        match heap.peek() {
+            Some(min_elem) => {
+                let curr_len = heap.len();
+                if min_elem.score < score || curr_len < results {
+                    if curr_len == results {
+                        heap.pop();
+                    }
+
+                    heap.push(new_item);
+                }
+            }
+            None => heap.push(new_item),
+        }
+    }
+
+    let mut items = heap.into_vec();
+    items.reverse();
+
+    Ok(items)
+}
+
+pub fn search_exemplar_svm(
+    query: &sbert::Embeddings,
+    vectors: &[sbert::Embeddings],
+    results: usize,
+) -> Result<Vec<IndexWithScore>, String> {
+    let dists = svm::svm(query, vectors)?;
+
+    let mut heap: BinaryHeap<IndexWithScore> = BinaryHeap::new();
+    for (index, dist) in dists.iter().enumerate() {
+        let score = *dist as f32;
         let new_item = IndexWithScore { index, score };
 
         match heap.peek() {
@@ -209,5 +244,23 @@ mod tests {
             .collect();
 
         assert_eq!(result_indices, vec![0, 2]);
+    }
+
+    #[test]
+    fn test_search_exemplar_svm() {
+        let q = l2_normalize(vec![1.0, 0.0]);
+        let vectors = vec![
+            vec![-1.0, 0.0],
+            vec![1.0, 0.0],
+            l2_normalize(vec![0.5, 0.5]),
+        ];
+
+        let result_indices: Vec<usize> = search_exemplar_svm(&q, &vectors, 2)
+            .expect("search_exemplar_svm: Unexpected failure")
+            .iter()
+            .map(|i| i.index)
+            .collect();
+
+        assert_eq!(result_indices, vec![1, 2]);
     }
 }

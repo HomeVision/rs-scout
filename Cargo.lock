@@ -305,6 +305,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c7d0618f0e0b7e8ff11427422b64564d5fb0be1940354bfe2e0529b18a9d9b8"
 
 [[package]]
+name = "approx"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0e60b75072ecd4168020818c0107f2857bb6c4e64252d8d3983f6263b40a5c3"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "askama_escape"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1347,6 +1356,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b00cc1c228a6782d0f076e7b232802e0c5689d41bb5df366f2a6b6621cfdfe1"
 
 [[package]]
+name = "liblinear"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8cdf5fc9c1f8348e744f575a66b8ac94fffe6f63b9c08aabee3021a16c16bcd"
+dependencies = [
+ "approx",
+ "cc",
+ "failure",
+ "parsnip",
+]
+
+[[package]]
 name = "libz-sys"
 version = "1.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1687,6 +1708,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "parsnip"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b31a43a4a05d62fa1b03d3ef216878de37923b09a03fde7acb43cdfcc2e59e6"
+
+[[package]]
 name = "paste"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1989,6 +2016,7 @@ dependencies = [
  "actix-files",
  "actix-web",
  "env_logger",
+ "liblinear",
  "log",
  "sbert",
  "serde",

@@ -101,7 +101,7 @@
     {
       "description": "Queries an index named <code>index_name</code>",
       "method": "GET",
-      "path": "/index/{index_name}/query?q={query}&n={num results}",
+      "path": "/index/{index_name}/query?q={query}&n={num results}&method={method}",
       "example": "curl https://goscout.online/index/shakespeare/query?q=romans&n=2",
       "parameters": [
         {
@@ -114,7 +114,11 @@
         },
         {
           "Name": "`n`",
-          "Description": "Optional query param to set number of results (default: 3)"
+          "Description": "Optional query param to set number of returned results (default: `3`)"
+        },
+        {
+          "Name": "`method`",
+          "Description": "Optional query param to set the method. Valid options are `svm` for Exemplar SVM, or `cosine` for Cosine similarity. (default: `svm`)"
         }
       ],
       "responses": [

@@ -2,7 +2,18 @@
 
 ---
 
-Scout is a lightweight, developer-friendly service that computes, stores, and indexes sentence embeddings, serving them through a RESTful interface. Its embedding model supports [50+ languages](https://www.sbert.net/docs/pretrained_models.html#multi-lingual-models).
+Scout is a lightweight, developer-friendly service that computes, stores, and indexes sentence embeddings, serving them through a RESTful interface. Think of it as a mashup of an embedding model, a vector database, and a querying service, all in a single, easy-to-use package. To use `scout`, simply pass us whole sentences (or paragraphs). Scout will automatically compute embeddings for each sentence and index them. When you want to query, send another sentence and Scout will return sentences that are most semantically similar to the query sentence.
+
+Scout's embedding model supports [50+ languages](https://www.sbert.net/docs/pretrained_models.html#multi-lingual-models) and allows querying using either [Exemplar Support Vector Machine (Exemplar-SVM)](https://www.cs.cmu.edu/~tmalisie/projects/iccv11/) or cosine similarity. Exemplar-SVM is an alternative to cosine similarity for ranking that can perform better (at the cost of computing an SVM for each query):
+
+> Random note on k-Nearest Neighbor lookups on embeddings: in my experience much better results can be obtained by training SVMs instead. Not too widely known.
+>
+> Short example:
+> https://github.com/karpathy/randomfun/blob/master/knn_vs_svm.ipynb
+>
+> Works because SVM ranking considers the unique aspects of your query w.r.t. data.
+>
+> — [Andrej Karpathay (@karpathy)](https://twitter.com/karpathy/status/1647025230546886658)
 
 Scout can be used to power semantic search or as a pre-filtering step to reduce prompt sizes for GPT and other costly LLM inputs. Scout can also be used for topic clustering, recommendation systems, or a variety of other natural language processing (NLP) tasks.
 
@@ -120,17 +131,18 @@ curl -X DELETE https://goscout.online/index/shakespeare
 
 <details>
     <summary>
-        <code><b>GET</b> /index/{index_name}/query?q={query}&n={num results}</code>
+        <code><b>GET</b> /index/{index_name}/query?q={query}&n={num results}&method={method}</code>
         <p>Queries an index named <code>index_name</code></p>
     </summary>
 
 ### Parameters
 
-| Name         | Description                                                    |
-| ------------ | -------------------------------------------------------------- |
-| `index_name` | Name of the index to read                                      |
-| `q`          | Required query parameter of text to query against `index_name` |
-| `n`          | Optional query param to set number of results (default: 3)     |
+| Name         | Description                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `index_name` | Name of the index to read                                                                                                             |
+| `q`          | Required query parameter of text to query against `index_name`                                                                        |
+| `n`          | Optional query param to set number of returned results (default: `3`)                                                                 |
+| `method`     | Optional query param to set the method. Valid options are `svm` for Exemplar SVM, or `cosine` for Cosine similarity. (default: `svm`) |
 
 ### Responses
 
@@ -216,10 +228,10 @@ curl https://goscout.online/index/shakespeare/query?q=romans&n=2
 ```
 
 </details>
-
+    
 ## Source Code, Technical Notes, Installation
 
-The source code for `scout` can be found at [https://github.com/homevision/rs-scout](https://github.com/homevision/rs-scout). Scout is written in Rust (built using `v1.69.0`) and targets `x86_64` architectures. Note: you must be able to build PyTorch's C++ bindings as this is a required dependency. For the time being, `rs-scout` does _not_ comiple on Apple Silicon.
+The source code for `scout` can be found at [https://github.com/homevision/rs-scout](https://github.com/homevision/rs-scout). Scout is written in Rust (built using `v1.69.0`) and targets `x86_64` architectures. Note: you must be able to build PyTorch's C++ bindings as this is a required dependency. Scout's Exemplar-SVM querying is powered by [`liblinear`](https://www.csie.ntu.edu.tw/~cjlin/liblinear/), the same library used to power fast SVM training in [`scikit-learn`](https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html). For the time being, `rs-scout` does _not_ compile on Apple Silicon.
 
 ### Installation/Execution
 
