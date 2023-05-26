@@ -2,6 +2,13 @@
 name = "rs-scout"
 version = "0.1.0"
 edition = "2021"
+authors = ["Vincent Chu (@vincentchu)"]
+description = "Scout is a lightweight, developer-friendly service that computes, stores, and indexes sentence embeddings, serving them through a RESTful interface."
+readme = "README.md"
+homepage = "https://goscout.online"
+repository = "https://github.com/HomeVision/rs-scout"
+license = "MIT"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
