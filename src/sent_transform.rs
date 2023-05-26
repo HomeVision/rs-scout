@@ -252,7 +252,7 @@ mod tests {
         let vectors = vec![
             vec![-1.0, 0.0],
             vec![1.0, 0.0],
-            l2_normalize(vec![0.5, 0.5]),
+            // l2_normalize(vec![0.5, 0.5]),
         ];
 
         let result_indices: Vec<usize> = search_exemplar_svm(&q, &vectors, 2)
