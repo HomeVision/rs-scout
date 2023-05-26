@@ -27,7 +27,7 @@ pub fn svm(q: &Vec<f32>, vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
     model_builder
         .parameters()
         .solver_type(SolverType::L2R_L2LOSS_SVC_DUAL)
-        .stopping_criterion(0.1)
+        .stopping_criterion(1e-6)
         .constraints_violation_cost(0.1);
 
     let model = model_builder
