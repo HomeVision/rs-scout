@@ -21,9 +21,38 @@ use vector_index::{GuardedIndex, TextBody};
 struct QueryParams {
     q: String,
     n: Option<String>,
+    method: Option<String>,
 }
 
 const DEFAULT_NRESULTS: &str = "3";
+fn parse_nresults(nparam: Option<String>) -> Result<usize, HttpResponse> {
+    let nstr = nparam.unwrap_or(DEFAULT_NRESULTS.to_string());
+    nstr.parse::<usize>().map_err(|err| {
+        resp_error(
+            HttpResponse::BadRequest(),
+            format!("Could not convert n query param: {err}"),
+        )
+    })
+}
+
+enum SearchMethod {
+    Cosine,
+    ExemplarSVM,
+}
+
+fn parse_method(methodparam: Option<String>) -> Result<SearchMethod, HttpResponse> {
+    match methodparam {
+        Some(param) => match param.as_str() {
+            "cosine" => Ok(SearchMethod::Cosine),
+            "svm" => Ok(SearchMethod::ExemplarSVM),
+            _ => Err(resp_error(
+                HttpResponse::BadRequest(),
+                format!("Invalid method '{param}'. Must be 'cosine' or 'svm'"),
+            )),
+        },
+        None => Ok(SearchMethod::ExemplarSVM),
+    }
+}
 
 #[get("/index/{index_name}/query")]
 async fn query_index(
@@ -31,15 +60,14 @@ async fn query_index(
     params: web::Query<QueryParams>,
     state: web::Data<ServerState>,
 ) -> HttpResponse {
-    let nstr = params.n.clone().unwrap_or(DEFAULT_NRESULTS.to_string());
-    let n: usize = match nstr.parse::<usize>() {
+    let n = match parse_nresults(params.n.clone()) {
         Ok(_n) => _n,
-        Err(err) => {
-            return resp_error(
-                HttpResponse::BadRequest(),
-                format!("Could not convert n query param: {err}"),
-            )
-        }
+        Err(resp) => return resp,
+    };
+
+    let search_method = match parse_method(params.method.clone()) {
+        Ok(m) => m,
+        Err(resp) => return resp,
     };
 
     let index_name = index_name.to_string();
@@ -49,7 +77,10 @@ async fn query_index(
     match cache.get(&index_name) {
         Some(index) => compute_normalized_embedding(&model, &params.q)
             .map_err(|err| format!("Error computing embedding: {err}"))
-            .and_then(|query_embedding| index.search_exemplar_svm(&query_embedding, n))
+            .and_then(|query_embedding| match search_method {
+                SearchMethod::Cosine => index.search_knn(&query_embedding, n),
+                SearchMethod::ExemplarSVM => index.search_exemplar_svm(&query_embedding, n),
+            })
             .map_or_else(
                 |error| resp_error(HttpResponse::InternalServerError(), error),
                 |results| HttpResponse::Ok().json(results),
