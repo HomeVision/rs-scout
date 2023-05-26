@@ -24,6 +24,10 @@ pub fn svm(q: &Vec<f32>, vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
         .input_data(util::TrainingInput::from_sparse_features(labels, features).unwrap())
         .bias(1f64);
 
+    let n_samples = (nvecs + 1) as f64;
+    let weights = vec![n_samples / (2.0 * (nvecs as f64)), n_samples / 2.0];
+    println!("WEIGHTS = {:?}", weights);
+
     model_builder
         .parameters()
         .solver_type(SolverType::L2R_L2LOSS_SVC_DUAL) // iter=7, -2.87500, nSV=3
@@ -33,7 +37,7 @@ pub fn svm(q: &Vec<f32>, vectors: &[Vec<f32>]) -> Result<Vec<f64>, String> {
         .stopping_criterion(1e-6)
         .constraints_violation_cost(0.1)
         .cost_penalty_labels(vec![0, 1])
-        .cost_penalty_weights(vec![0.75, 1.5]);
+        .cost_penalty_weights(weights);
 
     let model = model_builder
         .build_model()
