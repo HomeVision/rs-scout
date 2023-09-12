@@ -217,6 +217,27 @@ async fn index_delete(
     }
 }
 
+#[post("/weights")]
+async fn compute_weights(
+    texts: web::Json<Vec<String>>,
+    state: web::Data<ServerState>,
+) -> HttpResponse {
+    let model = state.model.lock().unwrap();
+
+    let strs = texts.to_vec();
+    let strs: Vec<&str> = strs.iter().map(|s| s.as_str()).collect();
+
+    compute_normalized_embeddings(&model, &strs).map_or_else(
+        |error| {
+            resp_error(
+                HttpResponse::InternalServerError(),
+                format!("Could not compute embeddings: {error}"),
+            )
+        },
+        |embeddings| HttpResponse::Ok().json(embeddings),
+    )
+}
+
 #[get("/")]
 async fn root() -> Result<NamedFile> {
     Ok(NamedFile::open("root.html")?)
@@ -265,6 +286,7 @@ async fn main() -> std::io::Result<()> {
             .service(index_update)
             .service(index_delete)
             .service(query_index)
+            .service(compute_weights)
             .wrap(Logger::default())
             .wrap(cors)
             .wrap(Compress::default())
