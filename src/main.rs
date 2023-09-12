@@ -188,15 +188,22 @@ async fn index_delete(
 
 #[post("/weights")]
 async fn compute_weights(
-    text_bodies: web::Json<Vec<TextBody>>,
+    texts: web::Json<Vec<String>>,
     state: web::Data<ServerState>,
 ) -> HttpResponse {
-    // let mut text_bodies = text_bodies.to_vec();
     let model = state.model.lock().unwrap();
 
-    compute_text_bodies_embeddings(&model, &text_bodies).map_or_else(
-        |error| resp_error(HttpResponse::InternalServerError(), error),
-        |foo| HttpResponse::Ok().json(foo),
+    let strs = texts.to_vec();
+    let strs: Vec<&str> = strs.iter().map(|s| s.as_str()).collect();
+
+    compute_normalized_embeddings(&model, &strs).map_or_else(
+        |error| {
+            resp_error(
+                HttpResponse::InternalServerError(),
+                format!("Could not compute embeddings: {error}"),
+            )
+        },
+        |embeddings| HttpResponse::Ok().json(embeddings),
     )
 }
 
