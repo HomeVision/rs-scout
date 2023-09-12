@@ -186,6 +186,20 @@ async fn index_delete(
     }
 }
 
+#[post("/weights")]
+async fn compute_weights(
+    text_bodies: web::Json<Vec<TextBody>>,
+    state: web::Data<ServerState>,
+) -> HttpResponse {
+    // let mut text_bodies = text_bodies.to_vec();
+    let model = state.model.lock().unwrap();
+
+    compute_text_bodies_embeddings(&model, &text_bodies).map_or_else(
+        |error| resp_error(HttpResponse::InternalServerError(), error),
+        |foo| HttpResponse::Ok().json(foo),
+    )
+}
+
 #[get("/")]
 async fn root() -> Result<NamedFile> {
     Ok(NamedFile::open("root.html")?)
@@ -234,6 +248,7 @@ async fn main() -> std::io::Result<()> {
             .service(index_update)
             .service(index_delete)
             .service(query_index)
+            .service(compute_weights)
             .wrap(Logger::default())
             .wrap(cors)
             .wrap(Compress::default())
